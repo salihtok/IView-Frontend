@@ -1,10 +1,10 @@
-import axios from 'axios';
-import { useAuthStore } from '../store/auth.store';
+import axios from "axios";
+import { useAuthStore } from "../store/auth.store";
 
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -26,10 +26,10 @@ instance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Token geçersiz, kullanıcıyı admin-login sayfasına yönlendir
       useAuthStore.getState().clearAuth(); // Token'ı temizleyin
-      window.location.href = '/admin-login'; // Admin-login sayfasına yönlendirin
+      window.location.href = "/admin-login"; // Admin-login sayfasına yönlendirin
     }
     return Promise.reject(error);
   }
-); 
+);
 
 export default instance;

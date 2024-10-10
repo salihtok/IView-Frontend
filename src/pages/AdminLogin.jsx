@@ -14,7 +14,7 @@ const Login = () => {
     if (!success) {
       setError("Login failed, please check your credentials.");
     } else {
-        navigate("/question");
+      navigate("/questionsList");
     }
   };
 
