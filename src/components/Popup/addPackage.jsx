@@ -1,11 +1,15 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 
-const AddPackagePopup = ({ onClose }) => {
-  const [question, setQuestion] = useState("");
-  const [duration, setDuration] = useState(2); // Default to 2 minutes
+const AddPackagePopup = ({ onClose, onAdd }) => {
+  const [packageName, setPackageName] = useState("");
 
-  const handleAddQuestion = () => {
-    // Implement add question logic
+  const handleAddPackage = () => {
+    const newPackage = {
+      name: packageName,
+      questions: [], // Initially, no questions are added to the package
+    };
+    onAdd(newPackage); // Pass the new package to the parent component
     onClose(); // Close the popup after adding
   };
 
@@ -18,37 +22,32 @@ const AddPackagePopup = ({ onClose }) => {
         >
           <i className="fas fa-times"></i>
         </button>
-        <h2 className="text-lg font-bold mb-4">Add Question</h2>
+        <h2 className="text-lg font-bold mb-4">Add Question Package</h2>
         <div className="mb-4">
-          <label className="block font-medium mb-1">Question</label>
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            className="w-full border-gray-300 rounded-lg p-2"
-            placeholder="Input..."
-            rows="3"
-          ></textarea>
-        </div>
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Duration (min)</label>
+          <label className="block font-medium mb-1">Package Name</label>
           <input
-            type="number"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
+            type="text"
+            value={packageName}
+            onChange={(e) => setPackageName(e.target.value)}
             className="w-full border-gray-300 rounded-lg p-2"
-            min="1"
-            placeholder="2"
+            placeholder="Package Name..."
           />
         </div>
         <button
-          onClick={handleAddQuestion}
+          onClick={handleAddPackage}
           className="bg-blue-500 text-white px-4 py-2 rounded-lg"
         >
-          Add
+          Add Package
         </button>
       </div>
     </div>
   );
+};
+
+// Define prop types for props validation
+AddPackagePopup.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onAdd: PropTypes.func.isRequired,
 };
 
 export default AddPackagePopup;

@@ -1,3 +1,5 @@
+import Sidebar from "../components/Bar/sidebar";
+
 export const InterviewList = () => {
   const interviewData = [
     { title: "Backend Interview", total: 6, onHold: 3, published: true },
@@ -13,21 +15,7 @@ export const InterviewList = () => {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <aside className="w-64 bg-gray-200 p-4">
-        <h1 className="text-xl font-bold mb-8">Admin Panel</h1>
-        <ul>
-          <li className="mb-4">
-            <a href="#" className="text-gray-700 hover:text-gray-900">
-              Manage Question Package
-            </a>
-          </li>
-          <li>
-            <a href="#" className="text-gray-700 hover:text-gray-900">
-              Interview List
-            </a>
-          </li>
-        </ul>
-      </aside>
+      <Sidebar />
 
       {/* Main content */}
       <div className="flex-grow p-6 bg-gray-100">
