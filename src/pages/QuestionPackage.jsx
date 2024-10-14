@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../components/Bar/sidebar";
 import useQuestionsPackageStore from "../store/questionPackageStore";
 import AddPackagePopup from "../components/Popup/addPackage";
+import EditPackagePopup from "../components/Popup/editPackage";
 
 export const QuestionPackage = () => {
   const {
@@ -12,11 +13,12 @@ export const QuestionPackage = () => {
     addQuestionPackage,
   } = useQuestionsPackageStore();
 
-  const [showPopup, setShowPopup] = useState(false);
+  const [showAddPopup, setShowAddPopup] = useState(false);
+  const [showEditPopup, setShowEditPopup] = useState(false);
+  const [currentPackageId, setCurrentPackageId] = useState(null); // Track the current package being edited
 
   useEffect(() => {
-    // Fetch question packages when the component mounts
-    fetchQuestions();
+    fetchQuestions(); // Fetch question packages when the component mounts
   }, [fetchQuestions]);
 
   const handleDelete = (id) => {
@@ -25,15 +27,18 @@ export const QuestionPackage = () => {
 
   const handleAddPackage = (newPackage) => {
     addQuestionPackage(newPackage);
-    setShowPopup(false); // Close the popup after adding
+    setShowAddPopup(false); // Close the popup after adding
+  };
+
+  const handleEditPackage = (id) => {
+    setCurrentPackageId(id);
+    setShowEditPopup(true); // Show the edit popup for the selected package
   };
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
       <Sidebar />
 
-      {/* Main content */}
       <div className="flex-grow p-6 bg-gray-100">
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
@@ -46,13 +51,12 @@ export const QuestionPackage = () => {
             <button
               id="addQuestionPackageBtn"
               className="bg-gray-500 text-white p-2 rounded"
-              onClick={() => setShowPopup(true)}
+              onClick={() => setShowAddPopup(true)}
             >
               +
             </button>
           </div>
 
-          {/* Question List */}
           {loading ? (
             <div>Loading...</div>
           ) : (
@@ -74,6 +78,12 @@ export const QuestionPackage = () => {
                       <td className="py-2 px-4">{pkg.questions.length}</td>
                       <td className="py-2 px-4">
                         <button
+                          onClick={() => handleEditPackage(pkg._id)} // Trigger the edit functionality
+                          className="text-blue-500 hover:text-blue-700 mr-2"
+                        >
+                          Edit
+                        </button>
+                        <button
                           onClick={() => handleDelete(pkg._id)}
                           className="text-red-500 hover:text-red-700"
                         >
@@ -89,11 +99,21 @@ export const QuestionPackage = () => {
         </div>
       </div>
 
-      {/* Add Question Package Popup */}
-      {showPopup && (
+      {showAddPopup && (
         <AddPackagePopup
-          onClose={() => setShowPopup(false)}
+          onClose={() => setShowAddPopup(false)}
           onAdd={handleAddPackage}
+        />
+      )}
+
+      {showEditPopup && (
+        <EditPackagePopup
+          packageId={currentPackageId}
+          onClose={() => setShowEditPopup(false)}
+          onUpdate={() => {
+            fetchQuestions(); // Güncellemeyi yaptıktan sonra soruları yeniden yükleyin
+            setShowEditPopup(false); // Popup'ı kapat
+          }}
         />
       )}
     </div>

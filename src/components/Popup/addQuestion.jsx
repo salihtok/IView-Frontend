@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import PropTypes from "prop-types"; // PropTypes'ı içe aktar
 import useQuestionsStore from "../../store/questionStore";
 
 const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
@@ -106,19 +105,6 @@ const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
       </div>
     </div>
   );
-};
-
-// PropTypes tanımları
-AddQuestionPopup.propTypes = {
-  onClose: PropTypes.func.isRequired,
-  selectedQuestion: PropTypes.shape({
-    _id: PropTypes.string,
-    text: PropTypes.string,
-    questionTime: PropTypes.shape({
-      minutes: PropTypes.number,
-      seconds: PropTypes.number,
-    }),
-  }),
 };
 
 export default AddQuestionPopup;
