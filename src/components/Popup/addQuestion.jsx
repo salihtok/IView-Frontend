@@ -43,12 +43,6 @@ const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50 z-50">
       <div className="bg-white rounded-lg shadow-lg p-6 w-96 relative">
-        <button
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-          onClick={onClose}
-        >
-          ✖
-        </button>
         <h2 className="text-lg font-bold mb-4">
           {selectedQuestion ? "Update Question" : "Add Question"}
         </h2>
@@ -96,12 +90,20 @@ const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
             placeholder="Seconds"
           />
         </div>
-        <button
-          onClick={handleSave}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-        >
-          {selectedQuestion ? "Update" : "Add"}
-        </button>
+        <div className="flex justify-between">
+          <button
+            onClick={handleSave}
+            className="bg-blue-500 text-white p-2 rounded w-2/5"
+          >
+            {selectedQuestion ? "Update" : "Add"}
+          </button>
+          <button
+            onClick={onClose}
+            className="bg-gray-500 text-white p-2 rounded w-2/5"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );
