@@ -42,12 +42,7 @@ export const QuestionPackage = () => {
       <div className="flex-grow p-6 bg-gray-100">
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              id="packageTitle"
-              placeholder="Search Packages..."
-              className="p-2 border border-gray-300 rounded w-1/2"
-            />
+            <h2 className="text-xl font-bold mb-6">Package List</h2>
             <button
               id="addQuestionPackageBtn"
               className="bg-gray-500 text-white p-2 rounded"
@@ -66,7 +61,7 @@ export const QuestionPackage = () => {
                   <tr className="w-full bg-gray-200 text-left text-gray-600">
                     <th className="py-3 px-4">Order</th>
                     <th className="py-3 px-4">Package Name</th>
-                    <th className="py-3 px-4">Questions</th>
+                    <th className="py-3 px-4">Question Count</th>
                     <th className="py-3 px-4">Action</th>
                   </tr>
                 </thead>

@@ -32,16 +32,11 @@ const QuestionPage = () => {
       <div className="flex-grow p-6 bg-gray-100">
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              id="packageTitle"
-              placeholder="Package Title..."
-              className="p-2 border border-gray-300 rounded w-1/2"
-            />
+            <h2 className="text-xl font-bold mb-6">Question List</h2>
             <button
               id="addQuestionBtn"
               className="bg-gray-500 text-white p-2 rounded"
-              onClick={() => setIsPopupOpen(true)} // Open popup
+              onClick={() => setIsPopupOpen(true)}
             >
               +
             </button>

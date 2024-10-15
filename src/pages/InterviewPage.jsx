@@ -1,65 +1,89 @@
+import { useState, useEffect } from "react";
+import useInterviewStore from "../store/interviewStore";
 import Sidebar from "../components/Bar/sidebar";
+import InterviewPopup from "../components/Popup/interviewPopup";
 
 export const InterviewList = () => {
-  const interviewData = [
-    { title: "Backend Interview", total: 6, onHold: 3, published: true },
-    { title: "Frontend Interview", total: 6, onHold: 2, published: false },
-    { title: "Fullstack Interview", total: 10, onHold: 2, published: false },
-    { title: "Devops Interview", total: 100, onHold: 0, published: false },
-    { title: "Backend Interview", total: 6, onHold: 2, published: true },
-    { title: "Backend Interview", total: 6, onHold: 2, published: true },
-    { title: "Backend Interview", total: 6, onHold: 2, published: true },
-    { title: "Backend Interview", total: 6, onHold: 2, published: true },
-  ];
+  const { interviews, fetchInterviews, deleteInterview, loading, error } =
+    useInterviewStore();
+
+  const [showAddPopup, setShowAddPopup] = useState(false);
+
+  useEffect(() => {
+    fetchInterviews();
+  }, []);
+
+  const handleDeleteInterview = (id) => {
+    deleteInterview(id);
+  };
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar */}
       <Sidebar />
 
-      {/* Main content */}
       <div className="flex-grow p-6 bg-gray-100">
-        <h2 className="text-xl font-bold mb-6">Interview List</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {interviewData.map((interview, index) => (
-            <div
-              key={index}
-              className="bg-white shadow-lg rounded-lg p-4 flex flex-col justify-between"
+        <div className="bg-white shadow-lg rounded-lg p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold mb-6">Interview List</h2>
+            <button
+              id="addInterviewBtn"
+              className="bg-gray-500 text-white p-2 rounded"
+              onClick={() => setShowAddPopup(true)}
             >
-              {/* Copy Link and Title */}
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold text-gray-800">
-                  {interview.title}
-                </h3>
-                <button className="text-gray-400 hover:text-gray-600">
-                  <i className="fas fa-link"></i> Copy Link
-                </button>
-              </div>
+              +
+            </button>
+          </div>
 
-              {/* Candidates Info */}
-              <div className="bg-gray-100 p-4 rounded-lg mb-4">
-                <div className="flex justify-between mb-2">
-                  <span>Total: {interview.total}</span>
-                  <span>On Hold: {interview.onHold}</span>
-                </div>
-              </div>
+          {error && <div className="text-red-500">{error}</div>}
+          {loading && <div>Loading...</div>}
 
-              {/* Published / Unpublished and Action */}
-              <div className="flex justify-between items-center">
-                <span
-                  className={`text-sm ${
-                    interview.published ? "text-green-600" : "text-red-500"
-                  }`}
+          {!loading && interviews && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+              {interviews.map((interview) => (
+                <div
+                  key={interview._id}
+                  className="bg-white shadow-lg rounded-lg p-4 flex flex-col justify-between"
                 >
-                  {interview.published ? "Published" : "Unpublished"}
-                </span>
-                <button className="text-blue-500 hover:underline">
-                  See Videos
-                </button>
-              </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-gray-800">
+                      {interview.title}
+                    </h3>
+                    <button
+                      onClick={() => handleDeleteInterview(interview._id)}
+                      className="text-red-400 hover:text-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                  <div className="bg-gray-100 p-4 rounded-lg mb-4">
+                    <div className="flex justify-between mb-2">
+                      <span>Total: {interview.total || 0}</span>
+                      <span>On Hold: {interview.onHold || 0}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span
+                      className={`text-sm ${
+                        interview.published ? "text-green-600" : "text-red-500"
+                      }`}
+                    >
+                      {interview.published ? "Published" : "Unpublished"}
+                    </span>
+                    <button className="text-blue-500 hover:underline">
+                      See Videos
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
+
+        {showAddPopup && (
+          <InterviewPopup onClose={() => setShowAddPopup(false)} />
+        )}
       </div>
     </div>
   );
