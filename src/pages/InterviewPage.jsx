@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import useInterviewStore from "../store/interviewStore";
 import Sidebar from "../components/Bar/sidebar";
 import InterviewPopup from "../components/Popup/interviewPopup";
+import EditInterviewPopup from "../components/Popup/editInterview"; // Use the corrected component name
 
 export const InterviewList = () => {
   const { interviews, fetchInterviews, deleteInterview, loading, error } =
     useInterviewStore();
-
   const [showAddPopup, setShowAddPopup] = useState(false);
+  const [selectedInterviewId, setSelectedInterviewId] = useState(null); // State to hold the selected interview ID for editing
+  const [showEditPopup, setShowEditPopup] = useState(false); // State to control Edit popup visibility
 
   useEffect(() => {
     fetchInterviews();
@@ -15,6 +17,11 @@ export const InterviewList = () => {
 
   const handleDeleteInterview = (id) => {
     deleteInterview(id);
+  };
+
+  const handleEditInterview = (interview) => {
+    setSelectedInterviewId(interview._id); // Set the selected interview ID
+    setShowEditPopup(true); // Show the edit popup
   };
 
   return (
@@ -48,12 +55,20 @@ export const InterviewList = () => {
                     <h3 className="font-semibold text-gray-800">
                       {interview.title}
                     </h3>
-                    <button
-                      onClick={() => handleDeleteInterview(interview._id)}
-                      className="text-red-400 hover:text-red-600"
-                    >
-                      Delete
-                    </button>
+                    <div>
+                      <button
+                        onClick={() => handleEditInterview(interview)} // Open edit popup
+                        className="text-blue-500 hover:underline mr-2"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteInterview(interview._id)}
+                        className="text-red-400 hover:text-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
                   <div className="bg-gray-100 p-4 rounded-lg mb-4">
@@ -83,6 +98,15 @@ export const InterviewList = () => {
 
         {showAddPopup && (
           <InterviewPopup onClose={() => setShowAddPopup(false)} />
+        )}
+        {showEditPopup && (
+          <EditInterviewPopup
+            interviewId={selectedInterviewId} // Pass the interview ID
+            onClose={() => {
+              setShowEditPopup(false);
+              setSelectedInterviewId(null); // Reset selected interview ID
+            }}
+          />
         )}
       </div>
     </div>
