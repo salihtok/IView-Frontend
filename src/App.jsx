@@ -3,11 +3,12 @@ import "./App.css";
 
 import Home from "./pages/Home";
 import AdminLogin from "./pages/AdminLogin";
-import NotFound from "./pages/NotFound"; // NotFound bileşenini içe aktarıyoruz
+import NotFound from "./pages/NotFound";
 
 import QuestionPage from "./pages/QuestionPage";
 import QuestionPackage from "./pages/QuestionPackage";
-import InterviewList from "./pages/InterviewPage";
+import InterviewList from "./pages/InterviewAdminPage";
+import CandideLink from "./pages/LinkPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/questionsList" element={<QuestionPage />} />
         <Route path="/question-package" element={<QuestionPackage />} />
         <Route path="/interview" element={<InterviewList />} />
+        <Route path="/interview/:uuid" element={<CandideLink />} />
         <Route path="*" element={<NotFound />} /> {/* 404 sayfası */}
       </Routes>
     </BrowserRouter>

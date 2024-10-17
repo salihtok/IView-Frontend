@@ -1,15 +1,22 @@
 import { useState, useEffect } from "react";
 import useInterviewStore from "../store/interviewStore";
+import useLinkStore from "../store/linkStore"; 
 import Sidebar from "../components/Bar/sidebar";
 import InterviewPopup from "../components/Popup/interviewPopup";
-import EditInterviewPopup from "../components/Popup/editInterview"; // Use the corrected component name
+import EditInterviewPopup from "../components/Popup/editInterview";
+
+// Toastify kütüphanesi importları
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Toastify stilleri
 
 export const InterviewList = () => {
   const { interviews, fetchInterviews, deleteInterview, loading, error } =
     useInterviewStore();
+  const { generateInterviewLink } = useLinkStore();
+
   const [showAddPopup, setShowAddPopup] = useState(false);
-  const [selectedInterviewId, setSelectedInterviewId] = useState(null); // State to hold the selected interview ID for editing
-  const [showEditPopup, setShowEditPopup] = useState(false); // State to control Edit popup visibility
+  const [selectedInterviewId, setSelectedInterviewId] = useState(null); 
+  const [showEditPopup, setShowEditPopup] = useState(false); 
 
   useEffect(() => {
     fetchInterviews();
@@ -20,8 +27,32 @@ export const InterviewList = () => {
   };
 
   const handleEditInterview = (interview) => {
-    setSelectedInterviewId(interview._id); // Set the selected interview ID
-    setShowEditPopup(true); // Show the edit popup
+    setSelectedInterviewId(interview._id);
+    setShowEditPopup(true); 
+  };
+
+  const handleCopyLink = async (id) => {
+    try {
+      // Link oluşturma işlemi
+      await generateInterviewLink(id);
+
+      // Yeni oluşturulan linki bekleyin
+      const updatedLink = await useLinkStore.getState().interviewLink;
+
+      if (updatedLink) {
+        // Linki kopyalama işlemi
+        await navigator.clipboard.writeText(updatedLink);
+
+        // Toastify ile başarı mesajı
+        toast.success("Link başarıyla kopyalandı: " + updatedLink);
+      } else {
+        toast.error("Link oluşturulamadı.");
+      }
+    } catch (error) {
+      console.error("Link kopyalanamadı", error);
+      // Toastify ile hata mesajı
+      toast.error("Link kopyalanırken bir hata oluştu.");
+    }
   };
 
   return (
@@ -57,7 +88,13 @@ export const InterviewList = () => {
                     </h3>
                     <div>
                       <button
-                        onClick={() => handleEditInterview(interview)} // Open edit popup
+                        onClick={() => handleCopyLink(interview._id)}
+                        className="text-green-500 hover:underline mr-2"
+                      >
+                        Link
+                      </button>
+                      <button
+                        onClick={() => handleEditInterview(interview)} 
                         className="text-blue-500 hover:underline mr-2"
                       >
                         Edit
@@ -101,13 +138,26 @@ export const InterviewList = () => {
         )}
         {showEditPopup && (
           <EditInterviewPopup
-            interviewId={selectedInterviewId} // Pass the interview ID
+            interviewId={selectedInterviewId}
             onClose={() => {
               setShowEditPopup(false);
-              setSelectedInterviewId(null); // Reset selected interview ID
+              setSelectedInterviewId(null); 
             }}
           />
         )}
+
+        {/* Toastify Container */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </div>
     </div>
   );
