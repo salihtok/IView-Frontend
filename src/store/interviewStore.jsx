@@ -21,10 +21,10 @@ const useInterviewStore = create((set) => ({
   },
 
   // Tek bir mülakatı ID ile getirme
-  fetchInterviewById: async (id) => {
+  fetchInterviewById: async (link) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get(`${API_URL}/api/interviews/${id}`);
+      const response = await axios.get(`${API_URL}/api/interviews/${link}`);
       set({ interview: response.data, loading: false });
     } catch (error) {
       set({ error: "Mülakat alınamadı", loading: false });
@@ -81,6 +81,25 @@ const useInterviewStore = create((set) => ({
       }));
     } catch (error) {
       set({ error: "Mülakat silinemedi", loading: false });
+    }
+  },
+
+  // Mülakatı yayınlama durumunu güncelleme
+  publishInterview: async (id, publish) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/interviews/${id}/publish`,
+        { publish }
+      );
+      set((state) => ({
+        interviews: state.interviews.map((interview) =>
+          interview._id === id ? response.data : interview
+        ),
+        loading: false,
+      }));
+    } catch (error) {
+      set({ error: "Mülakat yayın durumu güncellenemedi", loading: false });
     }
   },
 }));

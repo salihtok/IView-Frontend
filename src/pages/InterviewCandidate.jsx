@@ -1,92 +1,130 @@
-import { useState, useEffect } from "react";
+// InterviewPage.js
+import React, { useState, useEffect } from "react";
+import { ReactMediaRecorder } from "react-media-recorder";
+import Webcam from "react-webcam";
+import useLinkStore from "../store/linkStore";
+import useVideoStore from "../store/videoStore";
 
-const InterviewPage = () => {
+const InterviewPage = ({ interview, formData }) => {
+  const { submitInterview } = useLinkStore(); // submitInterview fonksiyonu
+  const { uploadVideo, loading, error } = useVideoStore(); // uploadVideo fonksiyonu
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(
-    questions[currentQuestionIndex].time
-  );
-  const [isInterviewStarted, setIsInterviewStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [videoStarted, setVideoStarted] = useState(false);
+  const questions = interview?.questionPackage?.[0]?.questions || [];
 
-  const questions = [
-    { text: "Tell us about yourself.", time: 120 },
-    { text: "Why are you interested in this position?", time: 180 },
-    { text: "What is your greatest strength?", time: 150 },
-  ];
-
-  useEffect(() => {
-    if (isInterviewStarted && timeLeft > 0) {
-      const timerId = setInterval(() => {
-        setTimeLeft((prevTime) => prevTime - 1);
-      }, 1000);
-
-      return () => clearInterval(timerId);
-    } else if (timeLeft === 0 && currentQuestionIndex < questions.length - 1) {
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-      setTimeLeft(questions[currentQuestionIndex + 1].time);
+      const { minutes, seconds } = questions[currentQuestionIndex + 1].questionTime;
+      setTimeLeft(minutes * 60 + seconds);
+    } else {
+      alert("Mülakat sona erdi.");
+      setVideoStarted(false); // Video sona erdiğinde durdur
     }
-  }, [isInterviewStarted, timeLeft, currentQuestionIndex, questions]);
-
-  const startInterview = () => {
-    setIsInterviewStarted(true);
   };
 
+  const handleSkipQuestion = () => goToNextQuestion();
+
+  useEffect(() => {
+    if (questions.length > 0 && timeLeft === null) {
+      const { minutes, seconds } = questions[0].questionTime;
+      setTimeLeft(minutes * 60 + seconds);
+    }
+  }, [questions, timeLeft]);
+
+  useEffect(() => {
+    if (timeLeft === null || !videoStarted) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    if (timeLeft === 0) {
+      goToNextQuestion();
+    }
+
+    return () => clearInterval(timer);
+  }, [timeLeft, videoStarted]);
+
+  const handleSubmitInterview = async (videoUrl) => {
+    try {
+      await submitInterview({
+        interviewId: interview._id,
+        ...formData,
+        videoUrl, // Oluşan video URL'sini dahil ediyoruz
+      });
+      alert("Mülakat başarıyla tamamlandı.");
+    } catch (error) {
+      alert("Mülakat kaydedilirken hata oluştu.");
+    }
+  };
+
+  const handleUploadVideo = async (videoBlobUrl) => {
+    // videoBlobUrl'den File oluşturuyoruz
+    const response = await fetch(videoBlobUrl);
+    const blob = await response.blob();
+    const videoFile = new File([blob], "recording.mp4", { type: "video/mp4" });
+
+    const videoData = await uploadVideo(videoFile); // Video'yu yükle
+    if (videoData) {
+      handleSubmitInterview(videoData.fileUrl); // Video URL'sini gönder
+    }
+  };
+
+  if (questions.length === 0) return <div>Soru bulunamadı...</div>;
+
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="bg-white shadow-lg rounded-lg p-6 max-w-4xl w-full">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Interview Questions</h2>
-          <div className="flex space-x-4">
-            <div>
-              <span className="text-gray-600">Question:</span>
-              <span>{currentQuestionIndex + 1}</span>/{questions.length}
-            </div>
-            <div>
-              <span className="text-gray-600">Time:</span>
-              <span>
-                {Math.floor(timeLeft / 60)
-                  .toString()
-                  .padStart(2, "0")}
-                :{(timeLeft % 60).toString().padStart(2, "0")}
-              </span>
-            </div>
+    <div className="flex flex-col items-center p-6 space-y-4 bg-gray-100">
+      <h2 className="text-2xl font-bold">Mülakat Soruları</h2>
+      <div className="flex justify-between w-full max-w-2xl">
+        <div className="flex-1 p-4 bg-white shadow rounded-lg">
+          <h3 className="font-semibold">Soru {currentQuestionIndex + 1}</h3>
+          <p>{questions[currentQuestionIndex].text}</p>
+          <div className="text-sm text-gray-600 mt-2">
+            <span>
+              Kalan Süre: {Math.floor(timeLeft / 60)}:{timeLeft % 60}
+            </span>
           </div>
+          <button
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+            onClick={handleSkipQuestion}
+          >
+            Soruyu Atla
+          </button>
         </div>
 
-        <div className="flex space-x-8">
-          {/* Video Alanı */}
-          <div className="flex-1 bg-gray-200 rounded-lg">
-            <video className="w-full h-full rounded-lg" controls />
-          </div>
-
-          {/* Sorular Alanı */}
-          <div className="w-1/3">
-            <div className="space-y-4">
-              {questions.map((question, index) => (
-                <div
-                  key={index}
-                  className={
-                    index === currentQuestionIndex
-                      ? "text-lg font-bold"
-                      : "text-sm"
-                  }
+        <ReactMediaRecorder
+          video
+          render={({ status, startRecording, stopRecording, mediaBlobUrl }) => (
+            <div className="flex-1 p-4 bg-white shadow rounded-lg">
+              <h3 className="font-semibold">Video {status}</h3>
+              <Webcam audio={false} className="rounded-lg" />
+              {!videoStarted ? (
+                <button
+                  onClick={() => {
+                    setVideoStarted(true);
+                    startRecording();
+                  }}
+                  className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
                 >
-                  {question.text}
-                </div>
-              ))}
+                  Videoyu Başlat
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setVideoStarted(false);
+                    stopRecording();
+                    handleUploadVideo(mediaBlobUrl); // Kaydı yükle
+                  }}
+                  className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
+                >
+                  Kaydı Bitir
+                </button>
+              )}
             </div>
-          </div>
-        </div>
-
-        {!isInterviewStarted && (
-          <div className="mt-6 text-right">
-            <button
-              onClick={startInterview}
-              className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-            >
-              Start Interview
-            </button>
-          </div>
-        )}
+          )}
+        />
       </div>
     </div>
   );

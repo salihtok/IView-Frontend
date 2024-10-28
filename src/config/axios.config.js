@@ -1,5 +1,8 @@
 import axios from "axios";
 import { useAuthStore } from "../store/auth.store";
+import { useNavigate } from "react-router-dom";
+
+const navigate = useNavigate();
 
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -26,7 +29,7 @@ instance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       // Token geçersiz, kullanıcıyı admin-login sayfasına yönlendir
       useAuthStore.getState().clearAuth(); // Token'ı temizleyin
-      window.location.href = "/admin-login"; // Admin-login sayfasına yönlendirin
+      navigate("/admin-login"); // Admin-login sayfasına yönlendirin
     }
     return Promise.reject(error);
   }

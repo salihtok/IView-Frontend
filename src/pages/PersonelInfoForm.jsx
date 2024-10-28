@@ -1,3 +1,4 @@
+// PersonalInfoForm.js
 import { useState } from "react";
 
 const PersonalInfoForm = ({ onSubmit }) => {
@@ -17,10 +18,10 @@ const PersonalInfoForm = ({ onSubmit }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Tüm zorunlu alanların kontrolü
+    // Form doğrulaması
     if (
       !formData.name ||
       !formData.surname ||
@@ -32,8 +33,7 @@ const PersonalInfoForm = ({ onSubmit }) => {
       return;
     }
 
-    // Form gönderildikten sonra `onSubmit` fonksiyonunu çağır
-    onSubmit();
+    onSubmit(formData); // Form verilerini üst bileşene gönder
   };
 
   return (

@@ -13,33 +13,61 @@ const useLinkStore = create((set) => ({
   fetchInterviewByLink: async (link) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get(`${API_URL}/api/link/${link}`);
-      set({ interview: response.data, loading: false });
+      const response = await axios.get(`${API_URL}/api/links/${link}`);
+      const interview = response.data;
+
+      // Publish kontrolü ve süresi dolmuş mu kontrolü
+      if (!interview.publish) {
+        set({ error: "Bu mülakat yayınlanmamıştır.", loading: false });
+        return;
+      }
+
+      const currentDate = new Date();
+      if (new Date(interview.expireDate) < currentDate) {
+        set({ error: "Bu mülakatın süresi dolmuştur.", loading: false });
+        return;
+      }
+
+      set({ interview, loading: false });
     } catch (error) {
-      set({ error: "Mülakat bulunamadı", loading: false });
+      const errorMessage =
+        error.response && error.response.status === 403
+          ? error.response.data.message
+          : "Mülakat bulunamadı";
+      set({ error: errorMessage, loading: false });
     }
   },
 
-  // Mülakatı tamamlama (video URL gönderme)
-  submitInterview: async (candidateId, videoUrl) => {
+  // Video mülakatı tamamlama (tüm bilgileri gönderme)
+  submitInterview: async ({
+    interviewId,
+    firstName,
+    lastName,
+    email,
+    phone,
+    kvkk,
+    videoUrl,
+  }) => {
     set({ loading: true, error: null });
     try {
-      await axios.post(`${API_URL}/api/submit`, { candidateId, videoUrl });
+      const response = await axios.post(`${API_URL}/api/links/submit`, {
+        interviewId,
+        firstName,
+        lastName,
+        email,
+        phone,
+        kvkk,
+        videoUrl,
+      });
       set({ loading: false });
+      return response.data;
     } catch (error) {
-      set({ error: "Mülakat tamamlanamadı", loading: false });
-    }
-  },
-
-  // Form gönderme işlemi
-  submitInterviewForm: async (formData) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await axios.post(`${API_URL}/api/submitform`, formData);
-      set({ loading: false });
-      return response.data.candidateId; // Eğer gerekli ise yeni oluşturulan candidateId'yi döndürebilirsiniz.
-    } catch (error) {
-      set({ error: "Form işlenemedi", loading: false });
+      const errorMessage =
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : "Mülakat tamamlanamadı";
+      set({ error: errorMessage, loading: false });
+      throw new Error(errorMessage);
     }
   },
 
@@ -52,7 +80,11 @@ const useLinkStore = create((set) => ({
       );
       set({ interviewLink: response.data.interviewLink, loading: false });
     } catch (error) {
-      set({ error: "Mülakat linki oluşturulamadı", loading: false });
+      const errorMessage =
+        error.response && error.response.data.message
+          ? error.response.data.message
+          : "Mülakat linki oluşturulamadı";
+      set({ error: errorMessage, loading: false });
     }
   },
 

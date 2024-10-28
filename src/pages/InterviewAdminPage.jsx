@@ -1,26 +1,37 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import useInterviewStore from "../store/interviewStore";
-import useLinkStore from "../store/linkStore"; 
+import useLinkStore from "../store/linkStore";
 import Sidebar from "../components/Bar/sidebar";
 import InterviewPopup from "../components/Popup/interviewPopup";
 import EditInterviewPopup from "../components/Popup/editInterview";
-
-// Toastify kütüphanesi importları
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Toastify stilleri
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useNavigate } from "react-router-dom";
 
 export const InterviewList = () => {
-  const { interviews, fetchInterviews, deleteInterview, loading, error } =
-    useInterviewStore();
+  const {
+    interviews,
+    fetchInterviews,
+    deleteInterview,
+    publishInterview,
+    loading,
+    error,
+  } = useInterviewStore();
+
+  const navigate = useNavigate(); // Kullanıcıyı yönlendirmek için
   const { generateInterviewLink } = useLinkStore();
 
   const [showAddPopup, setShowAddPopup] = useState(false);
-  const [selectedInterviewId, setSelectedInterviewId] = useState(null); 
-  const [showEditPopup, setShowEditPopup] = useState(false); 
+  const [selectedInterviewId, setSelectedInterviewId] = useState(null);
+  const [showEditPopup, setShowEditPopup] = useState(false);
 
   useEffect(() => {
     fetchInterviews();
   }, []);
+
+  const handleViewVideos = (interviewId) => {
+    navigate(`/interview/${interviewId}/videos`);
+  };
 
   const handleDeleteInterview = (id) => {
     deleteInterview(id);
@@ -28,37 +39,58 @@ export const InterviewList = () => {
 
   const handleEditInterview = (interview) => {
     setSelectedInterviewId(interview._id);
-    setShowEditPopup(true); 
+    setShowEditPopup(true);
   };
 
   const handleCopyLink = async (id) => {
     try {
-      // Link oluşturma işlemi
       await generateInterviewLink(id);
-
-      // Yeni oluşturulan linki bekleyin
       const updatedLink = await useLinkStore.getState().interviewLink;
 
       if (updatedLink) {
-        // Linki kopyalama işlemi
         await navigator.clipboard.writeText(updatedLink);
-
-        // Toastify ile başarı mesajı
         toast.success("Link başarıyla kopyalandı: " + updatedLink);
       } else {
         toast.error("Link oluşturulamadı.");
       }
     } catch (error) {
       console.error("Link kopyalanamadı", error);
-      // Toastify ile hata mesajı
       toast.error("Link kopyalanırken bir hata oluştu.");
+    }
+  };
+
+  // Yayın durumunu değiştirme fonksiyonu
+  const handleTogglePublish = async (interview) => {
+    const newPublishStatus = !interview.publish;
+    await publishInterview(interview._id, newPublishStatus);
+    if (newPublishStatus) {
+      toast.success("Interview published!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
+    } else {
+      toast.error("Interview unpublished!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+      });
     }
   };
 
   return (
     <div className="flex h-screen">
       <Sidebar />
-
       <div className="flex-grow p-6 bg-gray-100">
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
@@ -94,7 +126,7 @@ export const InterviewList = () => {
                         Link
                       </button>
                       <button
-                        onClick={() => handleEditInterview(interview)} 
+                        onClick={() => handleEditInterview(interview)}
                         className="text-blue-500 hover:underline mr-2"
                       >
                         Edit
@@ -115,17 +147,22 @@ export const InterviewList = () => {
                     </div>
                   </div>
 
+                  {/* Yayın durumunu gösteren ve tıklanarak toogle edilen alan */}
                   <div className="flex justify-between items-center">
                     <span
-                      className={`text-sm ${
-                        interview.published ? "text-green-600" : "text-red-500"
+                      className={`text-sm cursor-pointer ${
+                        interview.publish ? "text-green-600" : "text-red-500"
                       }`}
+                      onClick={() => handleTogglePublish(interview)}
                     >
-                      {interview.published ? "Published" : "Unpublished"}
+                      {interview.publish ? "Published" : "Unpublished"}
                     </span>
-                    <button className="text-blue-500 hover:underline">
-                      See Videos
-                    </button>
+                    <button
+                        onClick={() => handleViewVideos(interview._id)} // Videolar sayfasına yönlendirme
+                        className="text-blue-500 hover:underline mr-2"
+                      >
+                        Videolar
+                      </button>
                   </div>
                 </div>
               ))}
@@ -141,12 +178,11 @@ export const InterviewList = () => {
             interviewId={selectedInterviewId}
             onClose={() => {
               setShowEditPopup(false);
-              setSelectedInterviewId(null); 
+              setSelectedInterviewId(null);
             }}
           />
         )}
 
-        {/* Toastify Container */}
         <ToastContainer
           position="top-right"
           autoClose={3000}
