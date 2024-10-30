@@ -1,14 +1,8 @@
 import axios from "axios";
 import { useAuthStore } from "../store/auth.store";
-import { useNavigate } from "react-router-dom";
-
-const navigate = useNavigate();
 
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Her istekte token'ı otomatik ekle
@@ -17,19 +11,22 @@ instance.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // JSON isteklerinde 'Content-Type: application/json' başlığını ekleyin
+  if (!config.headers["Content-Type"] && !(config.data instanceof FormData)) {
+    config.headers["Content-Type"] = "application/json";
+  }
   return config;
 });
 
 // Yanıt interceptor'ı ekleyerek 401 hatasında yönlendirme yapın
 instance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
       // Token geçersiz, kullanıcıyı admin-login sayfasına yönlendir
       useAuthStore.getState().clearAuth(); // Token'ı temizleyin
-      navigate("/admin-login"); // Admin-login sayfasına yönlendirin
+      window.location.href = "/admin-login";
     }
     return Promise.reject(error);
   }

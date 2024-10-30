@@ -21,7 +21,7 @@ const useVideoStore = create((set) => ({
     }
   },
 
-  // Video yükle
+  // Yükleme fonksiyonu: sadece filePath döner
   uploadVideo: async (file) => {
     set({ loading: true, error: null });
     try {
@@ -29,17 +29,19 @@ const useVideoStore = create((set) => ({
       formData.append("file", file);
 
       const response = await axios.post(`${API_URL}/api/videos`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      set((state) => ({
-        videos: [...state.videos, response.data],
-        loading: false,
-      }));
+      const videoData = response.data.files?.[0];
+      console.log("Video data:", videoData.fileId);
+      if (videoData?.fileId) {
+        return videoData.fileId; // Sadece fileId’i döndürür.
+      } else {
+        throw new Error("Video yüklenemedi: fileId alınamadı.");
+      }
     } catch (error) {
       set({ error: "Video yüklenemedi.", loading: false });
+      throw error;
     }
   },
 

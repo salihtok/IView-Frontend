@@ -3,8 +3,8 @@ import { useState } from "react";
 
 const PersonalInfoForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
-    name: "",
-    surname: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     kvkk: false,
@@ -23,8 +23,8 @@ const PersonalInfoForm = ({ onSubmit }) => {
 
     // Form doğrulaması
     if (
-      !formData.name ||
-      !formData.surname ||
+      !formData.firstName ||
+      !formData.lastName ||
       !formData.email ||
       !formData.phone ||
       !formData.kvkk
@@ -44,16 +44,16 @@ const PersonalInfoForm = ({ onSubmit }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
-            htmlFor="name"
+            htmlFor="firstName"
             className="block text-sm font-medium text-gray-700"
           >
             Name*
           </label>
           <input
             type="text"
-            id="name"
-            name="name"
-            value={formData.name}
+            id="firstName"
+            name="firstName"
+            value={formData.firstName}
             onChange={handleChange}
             required
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
@@ -62,16 +62,16 @@ const PersonalInfoForm = ({ onSubmit }) => {
 
         <div>
           <label
-            htmlFor="surname"
+            htmlFor="lastName"
             className="block text-sm font-medium text-gray-700"
           >
             Surname*
           </label>
           <input
             type="text"
-            id="surname"
-            name="surname"
-            value={formData.surname}
+            id="lastName"
+            name="lastName"
+            value={formData.lastName}
             onChange={handleChange}
             required
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
