@@ -1,35 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { ReactMediaRecorder } from "react-media-recorder";
 import Webcam from "react-webcam";
-import useLinkStore from "../store/linkStore";
+import useCandidateStore from "../store/candidateStore";
 import useVideoStore from "../store/videoStore";
 
 const InterviewPage = ({ interview, formData }) => {
-  const { submitInterview } = useLinkStore();
+  const { submitInterview } = useCandidateStore();
   const { uploadVideo } = useVideoStore();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(null);
   const [videoStarted, setVideoStarted] = useState(false);
-  const [videoStopped, setVideoStopped] = useState(false);
+  const [recordingStopped, setRecordingStopped] = useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState(null);
+  const [mediaBlobUrl, setMediaBlobUrl] = useState(null);
+  const [isUploading, setIsUploading] = useState(false); // New loading state
 
   const questions =
     interview?.questionPackage?.flatMap((pkg) => pkg.questions) || [];
-
-  const goToNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-      const { minutes, seconds } =
-        questions[currentQuestionIndex + 1].questionTime;
-      setTimeLeft(minutes * 60 + seconds);
-    }
-  };
-
-  const handleSkipQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      goToNextQuestion();
-    }
-  };
 
   useEffect(() => {
     if (questions.length > 0 && timeLeft === null) {
@@ -52,19 +39,51 @@ const InterviewPage = ({ interview, formData }) => {
     return () => clearInterval(timer);
   }, [timeLeft, videoStarted]);
 
-  const handleUploadVideo = async (videoBlobUrl) => {
+  useEffect(() => {
+    if (mediaBlobUrl) {
+      console.log("mediaBlobUrl mevcut:", mediaBlobUrl);
+      handleUploadVideo();
+    }
+  }, [mediaBlobUrl]);
+
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      const { minutes, seconds } =
+        questions[currentQuestionIndex + 1].questionTime;
+      setTimeLeft(minutes * 60 + seconds);
+    }
+  };
+
+  const handleSkipQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      goToNextQuestion();
+    }
+  };
+
+  const handleUploadVideo = async () => {
+    if (!mediaBlobUrl) {
+      console.error("Video Blob URL bulunamadı.");
+      return;
+    }
+    console.log("Uploading video from URL:", mediaBlobUrl);
+    setIsUploading(true); // Set loading state to true
     try {
-      const response = await fetch(videoBlobUrl);
+      const response = await fetch(mediaBlobUrl);
+      if (!response.ok) throw new Error("Video yüklenirken hata oluştu.");
       const blob = await response.blob();
       const videoFile = new File([blob], "recording.mp4", {
         type: "video/mp4",
       });
-      console.log("Video dosyası:", videoFile);
+      console.log("VideoFile uploadtan önce:", videoFile);
       const videoUrl = await uploadVideo(videoFile);
+      if (!videoUrl) throw new Error("Video URL alınamadı.");
       setUploadedVideoUrl(videoUrl);
-      console.log("Video URL:", videoUrl);
+      console.log("Video URL uploadtan sonra:", videoUrl);
     } catch (error) {
       console.error("Video yüklenirken hata oluştu:", error);
+    } finally {
+      setIsUploading(false); // Reset loading state after upload completes
     }
   };
 
@@ -81,11 +100,18 @@ const InterviewPage = ({ interview, formData }) => {
         videoUrl: uploadedVideoUrl,
       });
       alert("Mülakat başarıyla tamamlandı.");
-      window.location.reload(); // Sayfayı yenileyerek form sayfasına dön
+      window.location.reload();
     } catch (error) {
       console.error("Mülakat kaydedilirken hata:", error);
       alert("Mülakat kaydedilirken hata oluştu.");
     }
+  };
+
+  const handleStopRecording = () => {
+    setRecordingStopped(true);
+    setVideoStarted(false);
+    setCurrentQuestionIndex(0);
+    setTimeLeft(null); // Zamanlayıcıyı sıfırlayın
   };
 
   if (questions.length === 0) return <div>Soru bulunamadı...</div>;
@@ -94,57 +120,68 @@ const InterviewPage = ({ interview, formData }) => {
     <div className="flex flex-col items-center p-6 space-y-4 bg-gray-100">
       <h2 className="text-2xl font-bold">Mülakat Soruları</h2>
 
-      {/* Video ve Butonlar */}
       <ReactMediaRecorder
         video
-        render={({ status, startRecording, stopRecording, mediaBlobUrl }) => (
+        onStop={(blobUrl) => {
+          setMediaBlobUrl(blobUrl);
+          handleStopRecording();
+        }}
+        render={({ status, startRecording, stopRecording }) => (
           <div className="flex flex-col items-center w-full max-w-2xl bg-white shadow rounded-lg p-4">
             <h3 className="font-semibold">Video {status}</h3>
             <Webcam audio={false} className="rounded-lg mb-4" />
-            {!videoStarted && !videoStopped && (
+            {!videoStarted &&
+              !recordingStopped && ( // Durdurulmamış ve başlanmamışsa
+                <button
+                  onClick={() => {
+                    setVideoStarted(true);
+                    setRecordingStopped(false);
+                    startRecording();
+                    console.log("Video kaydı başlatıldı");
+                  }}
+                  className="px-4 py-2 bg-green-500 text-white rounded"
+                >
+                  Videoyu Başlat
+                </button>
+              )}
+            {videoStarted && !recordingStopped && (
               <button
                 onClick={() => {
-                  setVideoStarted(true);
-                  startRecording();
-                }}
-                className="px-4 py-2 bg-green-500 text-white rounded"
-              >
-                Videoyu Başlat
-              </button>
-            )}
-            {videoStarted && currentQuestionIndex === questions.length - 1 && (
-              <button
-                onClick={() => {
-                  setVideoStarted(false);
-                  setVideoStopped(true); // Mark video as stopped
                   stopRecording();
-                  handleUploadVideo(mediaBlobUrl);
+                  console.log("Video kaydı durduruldu");
                 }}
                 className="px-4 py-2 bg-red-500 text-white rounded"
               >
                 Kaydı Bitir
               </button>
             )}
-            {uploadedVideoUrl && (
-              <button
-                onClick={handleCompleteInterview}
-                className="px-4 py-2 bg-purple-500 text-white rounded mt-4"
-              >
-                Mülakatı Tamamla
-              </button>
-            )}
+            {recordingStopped &&
+              uploadedVideoUrl && ( // Durdurulduysa ve video yüklendiyse
+                <button
+                  onClick={handleCompleteInterview}
+                  className="px-4 py-2 bg-purple-500 text-white rounded mt-4"
+                >
+                  Mülakatı Tamamla
+                </button>
+              )}
+            {recordingStopped &&
+              isUploading && ( // Loading message while uploading
+                <div className="mt-4 text-yellow-600">
+                  Videonuz yükleniyor. Lütfen bekleyin...
+                </div>
+              )}
           </div>
         )}
       />
 
-      {/* Sorular */}
-      {videoStarted && (
+      {videoStarted && !recordingStopped && (
         <div className="w-full max-w-2xl p-4 bg-white shadow rounded-lg mt-4">
           <h3 className="font-semibold">Soru {currentQuestionIndex + 1}</h3>
           <p>{questions[currentQuestionIndex]?.text}</p>
           <div className="text-sm text-gray-600 mt-2">
             <span>
-              Kalan Süre: {Math.floor(timeLeft / 60)}:{timeLeft % 60}
+              Kalan Süre: {Math.floor(timeLeft / 60)}:
+              {String(timeLeft % 60).padStart(2, "0")}
             </span>
           </div>
           {currentQuestionIndex < questions.length - 1 && (

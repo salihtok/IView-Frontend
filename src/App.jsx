@@ -9,7 +9,7 @@ import QuestionPage from "./pages/QuestionPage";
 import QuestionPackage from "./pages/QuestionPackage";
 import InterviewList from "./pages/InterviewAdminPage";
 import CandideLink from "./pages/LinkPage";
-import VideoListPage from "./pages/videoListPage";
+import CandidateVideoPage from "./pages/CandidateVideoPage";
 
 function App() {
   return (
@@ -22,7 +22,7 @@ function App() {
         <Route path="/question-package" element={<QuestionPackage />} />
         <Route path="/interview" element={<InterviewList />} />
         <Route path="/interview/:uuid" element={<CandideLink />} />
-        <Route path="/interview/:interviewId/videos" element={<VideoListPage />} />
+        <Route path="/interview/:interviewId/candidates" element={<CandidateVideoPage />} />
         <Route path="*" element={<NotFound />} /> {/* 404 sayfası */}
       </Routes>
     </BrowserRouter>
