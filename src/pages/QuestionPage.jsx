@@ -9,6 +9,7 @@ const QuestionPage = () => {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null); // Selected question for editing
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchQuestions(); // Fetch questions on component mount
@@ -23,6 +24,11 @@ const QuestionPage = () => {
     setIsPopupOpen(true); // Open popup
   };
 
+  // Filter questions based on search query
+  const filteredQuestions = questions.filter((question) =>
+    question.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
@@ -33,19 +39,36 @@ const QuestionPage = () => {
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold mb-6">Question List</h2>
-            <button
-              id="addQuestionBtn"
-              className="bg-gray-500 text-white p-2 rounded"
-              onClick={() => setIsPopupOpen(true)}
-            >
-              +
-            </button>
+            <div className="flex items-center gap-4">
+              {/* Search Bar */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search questions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+                />
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  🔍
+                </span>
+              </div>
+              <button
+                id="addQuestionBtn"
+                className="bg-gray-500 text-white p-2 rounded"
+                onClick={() => setIsPopupOpen(true)}
+              >
+                +
+              </button>
+            </div>
           </div>
 
           {/* Question List */}
           {loading && <p>Loading...</p>}
           {error && <p>{error}</p>}
-          {!loading && questions.length === 0 && <p>No questions found.</p>}
+          {!loading && filteredQuestions.length === 0 && (
+            <p>No questions found matching your search.</p>
+          )}
 
           <div className="overflow-hidden border border-gray-300 rounded">
             <table className="min-w-full bg-white">
@@ -58,7 +81,7 @@ const QuestionPage = () => {
                 </tr>
               </thead>
               <tbody id="questionList">
-                {questions.map((question, index) => (
+                {filteredQuestions.map((question, index) => (
                   <tr key={question._id}>
                     <td className="py-3 px-4">{index + 1}</td>
                     <td className="py-3 px-4">{question.text}</td>

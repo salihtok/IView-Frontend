@@ -24,13 +24,14 @@ export const InterviewList = () => {
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [selectedInterviewId, setSelectedInterviewId] = useState(null);
   const [showEditPopup, setShowEditPopup] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchInterviews();
   }, []);
 
   const handleViewVideos = (interviewId) => {
-    navigate(`/interview/${interviewId}/videos`);
+    navigate(`/interview/${interviewId}/candidates`);
   };
 
   const handleDeleteInterview = (id) => {
@@ -88,6 +89,10 @@ export const InterviewList = () => {
     }
   };
 
+  const filteredInterviews = interviews?.filter((interview) =>
+    interview.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -95,13 +100,22 @@ export const InterviewList = () => {
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold mb-6">Interview List</h2>
-            <button
-              id="addInterviewBtn"
-              className="bg-gray-500 text-white p-2 rounded"
-              onClick={() => setShowAddPopup(true)}
-            >
-              +
-            </button>
+            <div className="flex items-center gap-4">
+              <input
+                type="text"
+                placeholder="Search interviews..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
+              />
+              <button
+                id="addInterviewBtn"
+                className="bg-gray-500 text-white p-2 rounded"
+                onClick={() => setShowAddPopup(true)}
+              >
+                +
+              </button>
+            </div>
           </div>
 
           {error && <div className="text-red-500">{error}</div>}
@@ -109,7 +123,7 @@ export const InterviewList = () => {
 
           {!loading && interviews && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-              {interviews.map((interview) => (
+              {filteredInterviews.map((interview) => (
                 <div
                   key={interview._id}
                   className="bg-white shadow-lg rounded-lg p-4 flex flex-col justify-between"
@@ -147,7 +161,6 @@ export const InterviewList = () => {
                     </div>
                   </div>
 
-                  {/* Yayın durumunu gösteren ve tıklanarak toogle edilen alan */}
                   <div className="flex justify-between items-center">
                     <span
                       className={`text-sm cursor-pointer ${
@@ -158,11 +171,11 @@ export const InterviewList = () => {
                       {interview.publish ? "Published" : "Unpublished"}
                     </span>
                     <button
-                        onClick={() => handleViewVideos(interview._id)} // Videolar sayfasına yönlendirme
-                        className="text-blue-500 hover:underline mr-2"
-                      >
-                        Videolar
-                      </button>
+                      onClick={() => handleViewVideos(interview._id)} // Videolar sayfasına yönlendirme
+                      className="text-blue-500 hover:underline mr-2"
+                    >
+                      Videolar
+                    </button>
                   </div>
                 </div>
               ))}
