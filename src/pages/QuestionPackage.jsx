@@ -3,6 +3,11 @@ import Sidebar from "../components/Bar/sidebar";
 import useQuestionsPackageStore from "../store/questionPackageStore";
 import AddPackagePopup from "../components/Popup/addPackage";
 import EditPackagePopup from "../components/Popup/editPackage";
+import SearchBar from "../components/Bar/SearchBar";
+import AddButton from "../components/Buttons/AddButton";
+import EditButton from "../components/Buttons/EditButton";
+import DeleteButton from "../components/Buttons/DeleteButton";
+import LogoutButton from "../components/Buttons/LogoutButton";
 
 export const QuestionPackage = () => {
   const {
@@ -15,11 +20,11 @@ export const QuestionPackage = () => {
 
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [showEditPopup, setShowEditPopup] = useState(false);
-  const [currentPackageId, setCurrentPackageId] = useState(null); // Track the current package being edited
+  const [currentPackageId, setCurrentPackageId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    fetchQuestions(); // Fetch question packages when the component mounts
+    fetchQuestions();
   }, [fetchQuestions]);
 
   const handleDelete = (id) => {
@@ -49,35 +54,16 @@ export const QuestionPackage = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold mb-6">Package List</h2>
             <div className="flex items-center gap-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search packages..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-                <svg
-                  className="absolute right-3 top-2.5 h-5 w-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-              <button
-                id="addQuestionPackageBtn"
-                className="bg-gray-500 text-white p-2 rounded"
+              <SearchBar
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                placeholder="Search packages..."
+              />
+              <AddButton
                 onClick={() => setShowAddPopup(true)}
-              >
-                +
-              </button>
+                id="addQuestionPackageBtn"
+              />
+              <LogoutButton />
             </div>
           </div>
 
@@ -100,20 +86,11 @@ export const QuestionPackage = () => {
                       <td className="py-2 px-4">{index + 1}</td>
                       <td className="py-2 px-4">{pkg.name}</td>
                       <td className="py-2 px-4">{pkg.questions.length}</td>
-                      <td className="py-2 px-4">
-                        <button
-                          onClick={() => handleEditPackage(pkg._id)} // Trigger the edit functionality
-                          className="text-blue-500 hover:text-blue-700 mr-2"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(pkg._id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Delete
-                        </button>
-                      </td>
+                        <td className="py-3 px-4 flex items-center gap-2">
+                          <EditButton
+                            onClick={() => handleEditPackage(pkg._id)} />{" "}
+                          <DeleteButton onClick={() => handleDelete(pkg._id)} />{" "}
+                        </td>
                     </tr>
                   ))}
                 </tbody>

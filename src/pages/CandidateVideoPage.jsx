@@ -3,6 +3,9 @@ import useCandidateStore from "../store/candidateStore";
 import useVideoStore from "../store/videoStore";
 import { useParams } from "react-router-dom";
 import Sidebar from "../components/Bar/sidebar";
+import DeleteButton from "../components/Buttons/DeleteButton";
+import LogoutButton from "../components/Buttons/LogoutButton";
+import SearchBar from "../components/Bar/SearchBar";
 
 const CandidateList = () => {
   const {
@@ -17,6 +20,7 @@ const CandidateList = () => {
 
   const [videos, setVideos] = useState({});
   const [openModal, setOpenModal] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchCandidatesForInterview(interviewId);
@@ -63,6 +67,13 @@ const CandidateList = () => {
     }
   };
 
+  // Filter candidates based on search term
+  const filteredCandidates = candidates.filter((candidate) =>
+    `${candidate.firstName} ${candidate.lastName}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
@@ -72,17 +83,23 @@ const CandidateList = () => {
       <div className="flex-grow p-6 bg-gray-100">
         <div className="bg-white shadow-lg rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold mb-6">
-              Candidates for Interview
-            </h2>
+            <h2 className="text-xl font-bold mb-6">Candidates for Interview</h2>
+            <div className="flex items-center gap-4">
+              <SearchBar
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                placeholder="Search candidates..."
+              />
+              <LogoutButton />
+            </div>
           </div>
-          {candidates.length === 0 ? (
+          {filteredCandidates.length === 0 ? (
             <div className="text-gray-600">
-              Bu mülakat için katılan aday yok.
+              No candidates match your search.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {candidates.map((candidate) => (
+              {filteredCandidates.map((candidate) => (
                 <div
                   key={candidate._id}
                   className="bg-white shadow-lg rounded-lg p-4"
@@ -90,28 +107,29 @@ const CandidateList = () => {
                   <h3 className="text-xl font-semibold">
                     {candidate.firstName} {candidate.lastName}
                   </h3>
-
                   <p>Email: {candidate.email}</p>
                   {videos[candidate._id] && (
                     <div className="mt-4 flex justify-between">
                       <button
                         onClick={() => setOpenModal(candidate._id)}
-                        className="text-blue-500 underline"
+                        className="text-blue-500 hover:text-blue-700"
                       >
-                        Videoyu İzle
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 16 16"
+                          fill="currentColor"
+                          className="size-6"
+                        >
+                          <path d="M3 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H3ZM15 4.75a.75.75 0 0 0-1.28-.53l-2 2a.75.75 0 0 0-.22.53v2.5c0 .199.079.39.22.53l2 2a.75.75 0 0 0 1.28-.53v-6.5Z" />
+                        </svg>
                       </button>
-
-                      <button
+                      <DeleteButton
                         onClick={() =>
                           handleDelete(candidate._id, candidate.videoUrl)
                         }
-                        className="text-red-500 underline"
-                      >
-                        Adayı Sil
-                      </button>
+                      />
                     </div>
                   )}
-
                   {openModal === candidate._id && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                       <div className="bg-white p-4 rounded-lg max-w-md w-full relative">
@@ -119,14 +137,14 @@ const CandidateList = () => {
                           onClick={() => setOpenModal(null)}
                           className="absolute top-2 right-2 text-gray-700"
                         >
-                          Kapat
+                          Close
                         </button>
                         <video width="100%" controls>
                           <source
                             src={videos[candidate._id]}
                             type="video/mp4"
                           />
-                          Tarayıcınız video etiketini desteklemiyor.
+                          Your browser does not support the video tag.
                         </video>
                       </div>
                     </div>

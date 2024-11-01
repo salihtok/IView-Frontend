@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import useQuestionsStore from "../store/questionStore";
 import AddQuestionPopup from "../components/Popup/addQuestion";
 import Sidebar from "../components/Bar/sidebar";
+import SearchBar from "../components/Bar/SearchBar";
+import AddButton from "../components/Buttons/AddButton";
+import EditButton from "../components/Buttons/EditButton";
+import DeleteButton from "../components/Buttons/DeleteButton";
+import LogoutButton from "../components/Buttons/LogoutButton";
 
 const QuestionPage = () => {
   const { questions, loading, error, fetchQuestions, deleteQuestion } =
@@ -40,26 +45,16 @@ const QuestionPage = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold mb-6">Question List</h2>
             <div className="flex items-center gap-4">
-              {/* Search Bar */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search questions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
-                />
-                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  🔍
-                </span>
-              </div>
-              <button
-                id="addQuestionBtn"
-                className="bg-gray-500 text-white p-2 rounded"
+              <SearchBar
+                searchTerm={searchQuery}
+                setSearchTerm={setSearchQuery}
+                placeholder="Search questions..."
+              />
+              <AddButton
                 onClick={() => setIsPopupOpen(true)}
-              >
-                +
-              </button>
+                id="addQuestionBtn"
+              />
+              <LogoutButton />
             </div>
           </div>
 
@@ -89,19 +84,11 @@ const QuestionPage = () => {
                       {question.questionTime.minutes} min{" "}
                       {question.questionTime.seconds} sec
                     </td>
-                    <td className="py-3 px-4">
-                      <button
-                        onClick={() => handleEdit(question)}
-                        className="bg-yellow-500 text-white p-1 rounded mr-2"
-                      >
-                        Edit
-                      </button>
-                      <button
+                    <td className="py-3 px-4 flex items-center gap-2">
+                      <EditButton onClick={() => handleEdit(question)} />{" "}
+                      <DeleteButton
                         onClick={() => handleDelete(question._id)}
-                        className="bg-red-500 text-white p-1 rounded"
-                      >
-                        Delete
-                      </button>
+                      />{" "}
                     </td>
                   </tr>
                 ))}

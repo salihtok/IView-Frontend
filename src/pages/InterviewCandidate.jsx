@@ -13,7 +13,7 @@ const InterviewPage = ({ interview, formData }) => {
   const [recordingStopped, setRecordingStopped] = useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState(null);
   const [mediaBlobUrl, setMediaBlobUrl] = useState(null);
-  const [isUploading, setIsUploading] = useState(false); // New loading state
+  const [isUploading, setIsUploading] = useState(false);
 
   const questions =
     interview?.questionPackage?.flatMap((pkg) => pkg.questions) || [];
@@ -175,21 +175,26 @@ const InterviewPage = ({ interview, formData }) => {
       />
 
       {videoStarted && !recordingStopped && (
-        <div className="w-full max-w-2xl p-4 bg-white shadow rounded-lg mt-4">
-          <h3 className="font-semibold">Soru {currentQuestionIndex + 1}</h3>
-          <p>{questions[currentQuestionIndex]?.text}</p>
-          <div className="text-sm text-gray-600 mt-2">
-            <span>
-              Kalan Süre: {Math.floor(timeLeft / 60)}:
-              {String(timeLeft % 60).padStart(2, "0")}
-            </span>
+        <div className="flex justify-between w-full max-w-2xl p-4 bg-white shadow rounded-lg mt-4">
+          <div>
+            <h3 className="font-semibold">Soru {currentQuestionIndex + 1}</h3>
+            <p>{questions[currentQuestionIndex]?.text}</p>
+            <div className="text-sm text-gray-600 mt-2">
+              <span>
+                Kalan Süre: {Math.floor(timeLeft / 60)}:
+                {String(timeLeft % 60).padStart(2, "0")}
+              </span>
+            </div>
           </div>
           {currentQuestionIndex < questions.length - 1 && (
             <button
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-              onClick={handleSkipQuestion}
+              onClick={() => {
+                setRecordingStopped(false);
+                handleSkipQuestion();
+              }}
             >
-              Soruyu Atla
+              Skip
             </button>
           )}
         </div>

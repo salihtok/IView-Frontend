@@ -26,3 +26,22 @@ export const loginAdmin = async (email, password) => {
     return false; // Hata durumu
   }
 };
+
+export const logoutAdmin = async () => {
+  try {
+    // Call backend to clear HTTP-only cookie if used
+    await axios.post(
+      `${API_URL}/api/login/logout`,
+      {},
+      { withCredentials: true }
+    );
+
+    // Clear frontend session data
+    Cookies.remove("token"); // Remove cookie-based token if stored here
+    useAuthStore.getState().logout(); // Update auth state
+
+    console.log("Logout successful.");
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
+};

@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
 import useInterviewStore from "../store/interviewStore";
-import useLinkStore from "../store/linkStore";
 import Sidebar from "../components/Bar/sidebar";
 import InterviewPopup from "../components/Popup/interviewPopup";
 import EditInterviewPopup from "../components/Popup/editInterview";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import SearchBar from "../components/Bar/SearchBar";
+import AddButton from "../components/Buttons/AddButton";
+import EditButton from "../components/Buttons/EditButton";
+import DeleteButton from "../components/Buttons/DeleteButton";
+import CopyLinkButton from "../components/Buttons/CopyLinkButton";
+import LogoutButton from "../components/Buttons/LogoutButton";
 
 export const InterviewList = () => {
   const {
@@ -18,8 +23,7 @@ export const InterviewList = () => {
     error,
   } = useInterviewStore();
 
-  const navigate = useNavigate(); // Kullanıcıyı yönlendirmek için
-  const { generateInterviewLink } = useLinkStore();
+  const navigate = useNavigate();
 
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [selectedInterviewId, setSelectedInterviewId] = useState(null);
@@ -41,23 +45,6 @@ export const InterviewList = () => {
   const handleEditInterview = (interview) => {
     setSelectedInterviewId(interview._id);
     setShowEditPopup(true);
-  };
-
-  const handleCopyLink = async (id) => {
-    try {
-      await generateInterviewLink(id);
-      const updatedLink = await useLinkStore.getState().interviewLink;
-
-      if (updatedLink) {
-        await navigator.clipboard.writeText(updatedLink);
-        toast.success("Link başarıyla kopyalandı: " + updatedLink);
-      } else {
-        toast.error("Link oluşturulamadı.");
-      }
-    } catch (error) {
-      console.error("Link kopyalanamadı", error);
-      toast.error("Link kopyalanırken bir hata oluştu.");
-    }
   };
 
   // Yayın durumunu değiştirme fonksiyonu
@@ -101,20 +88,16 @@ export const InterviewList = () => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold mb-6">Interview List</h2>
             <div className="flex items-center gap-4">
-              <input
-                type="text"
+              <SearchBar
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
                 placeholder="Search interviews..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400"
               />
-              <button
-                id="addInterviewBtn"
-                className="bg-gray-500 text-white p-2 rounded"
+              <AddButton
                 onClick={() => setShowAddPopup(true)}
-              >
-                +
-              </button>
+                id="addInterviewBtn"
+              />
+              <LogoutButton />
             </div>
           </div>
 
@@ -132,25 +115,15 @@ export const InterviewList = () => {
                     <h3 className="font-semibold text-gray-800">
                       {interview.title}
                     </h3>
-                    <div>
-                      <button
-                        onClick={() => handleCopyLink(interview._id)}
-                        className="text-green-500 hover:underline mr-2"
-                      >
-                        Link
-                      </button>
-                      <button
+
+                    <div className="py-3 px-4 flex items-center gap-2">
+                      <CopyLinkButton interviewId={interview._id} />
+                      <EditButton
                         onClick={() => handleEditInterview(interview)}
-                        className="text-blue-500 hover:underline mr-2"
-                      >
-                        Edit
-                      </button>
-                      <button
+                      />
+                      <DeleteButton
                         onClick={() => handleDeleteInterview(interview._id)}
-                        className="text-red-400 hover:text-red-600"
-                      >
-                        Delete
-                      </button>
+                      />
                     </div>
                   </div>
 
@@ -164,7 +137,9 @@ export const InterviewList = () => {
                   <div className="flex justify-between items-center">
                     <span
                       className={`text-sm cursor-pointer ${
-                        interview.publish ? "text-green-600" : "text-red-500"
+                        interview.publish
+                          ? "text-green-500 hover:text-green-700"
+                          : "text-red-500 hover:text-red-700"
                       }`}
                       onClick={() => handleTogglePublish(interview)}
                     >
@@ -172,9 +147,16 @@ export const InterviewList = () => {
                     </span>
                     <button
                       onClick={() => handleViewVideos(interview._id)} // Videolar sayfasına yönlendirme
-                      className="text-blue-500 hover:underline mr-2"
+                      className="text-blue-500 hover:text-blue-700 mr-2"
                     >
-                      Videolar
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        className="size-6"
+                      >
+                        <path d="M8.5 4.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10.9 12.006c.11.542-.348.994-.9.994H2c-.553 0-1.01-.452-.902-.994a5.002 5.002 0 0 1 9.803 0ZM14.002 12h-1.59a2.556 2.556 0 0 0-.04-.29 6.476 6.476 0 0 0-1.167-2.603 3.002 3.002 0 0 1 3.633 1.911c.18.522-.283.982-.836.982ZM12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -198,7 +180,7 @@ export const InterviewList = () => {
 
         <ToastContainer
           position="top-right"
-          autoClose={3000}
+          autoClose={2000}
           hideProgressBar={false}
           newestOnTop={false}
           closeOnClick

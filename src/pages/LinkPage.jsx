@@ -28,7 +28,7 @@ function CandidateLink() {
   }
 
   if (error) {
-    return <div className="error">{error}</div>; // Hata varsa hata mesajı göster
+    return <div className="error">{error}</div>;
   }
 
   return (
@@ -41,7 +41,7 @@ function CandidateLink() {
         </div>
       )}
       {isFormSubmitted && interview && (
-        <InterviewPage interview={interview} formData={formData} /> // InterviewPage'e formData gönder
+        <InterviewPage interview={interview} formData={formData} />
       )}
     </div>
   );
