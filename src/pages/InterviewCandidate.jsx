@@ -40,10 +40,7 @@ const InterviewPage = ({ interview, formData }) => {
   }, [timeLeft, videoStarted]);
 
   useEffect(() => {
-    if (mediaBlobUrl) {
-      console.log("mediaBlobUrl mevcut:", mediaBlobUrl);
-      handleUploadVideo();
-    }
+    if (mediaBlobUrl) handleUploadVideo();
   }, [mediaBlobUrl]);
 
   const goToNextQuestion = () => {
@@ -55,41 +52,31 @@ const InterviewPage = ({ interview, formData }) => {
     }
   };
 
-  const handleSkipQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      goToNextQuestion();
-    }
-  };
+  const handleSkipQuestion = () => goToNextQuestion();
 
   const handleUploadVideo = async () => {
-    if (!mediaBlobUrl) {
-      console.error("Video Blob URL bulunamadı.");
-      return;
-    }
-    console.log("Uploading video from URL:", mediaBlobUrl);
-    setIsUploading(true); // Set loading state to true
+    if (!mediaBlobUrl) return;
+    setIsUploading(true);
+
     try {
       const response = await fetch(mediaBlobUrl);
-      if (!response.ok) throw new Error("Video yüklenirken hata oluştu.");
+      if (!response.ok) throw new Error("Error during video upload.");
       const blob = await response.blob();
       const videoFile = new File([blob], "recording.mp4", {
         type: "video/mp4",
       });
-      console.log("VideoFile uploadtan önce:", videoFile);
       const videoUrl = await uploadVideo(videoFile);
-      if (!videoUrl) throw new Error("Video URL alınamadı.");
       setUploadedVideoUrl(videoUrl);
-      console.log("Video URL uploadtan sonra:", videoUrl);
     } catch (error) {
-      console.error("Video yüklenirken hata oluştu:", error);
+      console.error("Video upload error:", error);
     } finally {
-      setIsUploading(false); // Reset loading state after upload completes
+      setIsUploading(false);
     }
   };
 
   const handleCompleteInterview = async () => {
     if (!uploadedVideoUrl) {
-      alert("Videoyu yüklemeyi tamamlayın.");
+      alert("Please wait for the video to finish uploading.");
       return;
     }
 
@@ -99,11 +86,11 @@ const InterviewPage = ({ interview, formData }) => {
         ...formData,
         videoUrl: uploadedVideoUrl,
       });
-      alert("Mülakat başarıyla tamamlandı.");
+      alert("Interview completed successfully.");
       window.location.reload();
     } catch (error) {
-      console.error("Mülakat kaydedilirken hata:", error);
-      alert("Mülakat kaydedilirken hata oluştu.");
+      console.error("Error completing interview:", error);
+      alert("An error occurred during interview completion.");
     }
   };
 
@@ -111,15 +98,13 @@ const InterviewPage = ({ interview, formData }) => {
     setRecordingStopped(true);
     setVideoStarted(false);
     setCurrentQuestionIndex(0);
-    setTimeLeft(null); // Zamanlayıcıyı sıfırlayın
+    setTimeLeft(null);
   };
 
-  if (questions.length === 0) return <div>Soru bulunamadı...</div>;
+  if (questions.length === 0) return <div>No questions available...</div>;
 
   return (
-    <div className="flex flex-col items-center p-6 space-y-4 bg-gray-100">
-      <h2 className="text-2xl font-bold">Mülakat Soruları</h2>
-
+    <div className="flex items-center justify-center h-screen bg-gray-900 overflow-hidden">
       <ReactMediaRecorder
         video
         onStop={(blobUrl) => {
@@ -127,78 +112,87 @@ const InterviewPage = ({ interview, formData }) => {
           handleStopRecording();
         }}
         render={({ status, startRecording, stopRecording }) => (
-          <div className="flex flex-col items-center w-full max-w-2xl bg-white shadow rounded-lg p-4">
-            <h3 className="font-semibold">Video {status}</h3>
-            <Webcam audio={false} className="rounded-lg mb-4" />
-            {!videoStarted &&
-              !recordingStopped && ( // Durdurulmamış ve başlanmamışsa
-                <button
-                  onClick={() => {
-                    setVideoStarted(true);
-                    setRecordingStopped(false);
-                    startRecording();
-                    console.log("Video kaydı başlatıldı");
-                  }}
-                  className="px-4 py-2 bg-green-500 text-white rounded"
-                >
-                  Videoyu Başlat
-                </button>
-              )}
-            {videoStarted && !recordingStopped && (
-              <button
-                onClick={() => {
-                  stopRecording();
-                  console.log("Video kaydı durduruldu");
-                }}
-                className="px-4 py-2 bg-red-500 text-white rounded"
-              >
-                Kaydı Bitir
-              </button>
-            )}
-            {recordingStopped &&
-              uploadedVideoUrl && ( // Durdurulduysa ve video yüklendiyse
-                <button
-                  onClick={handleCompleteInterview}
-                  className="px-4 py-2 bg-purple-500 text-white rounded mt-4"
-                >
-                  Mülakatı Tamamla
-                </button>
-              )}
-            {recordingStopped &&
-              isUploading && ( // Loading message while uploading
-                <div className="mt-4 text-yellow-600">
-                  Videonuz yükleniyor. Lütfen bekleyin...
+          <div className="relative w-4/5 h-4/5 bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col items-center">
+            <h3 className="absolute top-2 text-white font-semibold">
+              {status}
+            </h3>
+            <Webcam
+              audio={false}
+              className="absolute w-full h-full object-cover"
+            />
+            <div className="justify-center absolute bottom-0 left-0 right-0 bg-opacity-75 bg-gray-900 text-white px-4 py-6">
+              <div className="flex py-4">
+                {!videoStarted && !recordingStopped && (
+                  <button
+                    onClick={() => {
+                      setVideoStarted(true);
+                      setRecordingStopped(false);
+                      startRecording();
+                    }}
+                    className="mx-auto px-4 py-2 bg-green-600 text-white rounded"
+                  >
+                    Start Video
+                  </button>
+                )}
+              </div>
+
+              {videoStarted && !recordingStopped && (
+                <div className="flex items-center justify-between w-full text-center space-x-4 max-w-2xl mx-auto py-4">
+                  <div className="flex-grow text-center">
+                    <h4 className="font-semibold text-lg inline-flex items-center gap-2">
+                      Question {currentQuestionIndex + 1}
+                      <span className="text-sm text-gray-400 ml-2">
+                        {Math.floor(timeLeft / 60)}:
+                        {String(timeLeft % 60).padStart(2, "0")}
+                      </span>
+                    </h4>
+                    <p>{questions[currentQuestionIndex]?.text}</p>
+                  </div>
+
+                  {currentQuestionIndex < questions.length - 1 ? (
+                    <button
+                      className="px-4 py-2 bg-blue-500 text-white rounded"
+                      onClick={handleSkipQuestion}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 16 16"
+                        fill="currentColor"
+                        className="size-6"
+                      >
+                        <path d="M2.53 3.956A1 1 0 0 0 1 4.804v6.392a1 1 0 0 0 1.53.848l5.113-3.196c.16-.1.279-.233.357-.383v2.73a1 1 0 0 0 1.53.849l5.113-3.196a1 1 0 0 0 0-1.696L9.53 3.956A1 1 0 0 0 8 4.804v2.731a.992.992 0 0 0-.357-.383L2.53 3.956Z" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      className="px-4 py-2 bg-green-600 text-white rounded"
+                      onClick={() => stopRecording()}
+                    >
+                      Complete Video
+                    </button>
+                  )}
                 </div>
               )}
+              {recordingStopped && uploadedVideoUrl && (
+                <div className="flex justify-center w-full mt-4">
+                  <button
+                    onClick={handleCompleteInterview}
+                    className="py-3 w-1/4 bg-purple-600 text-white rounded"
+                  >
+                    Complete Interview
+                  </button>
+                </div>
+              )}
+
+              {recordingStopped && isUploading && (
+                <div className="flex justify-center w-full mt-4 text-yellow-400">
+                  Uploading video... Please wait.
+                </div>
+              )}
+            </div>
           </div>
         )}
       />
-
-      {videoStarted && !recordingStopped && (
-        <div className="flex justify-between w-full max-w-2xl p-4 bg-white shadow rounded-lg mt-4">
-          <div>
-            <h3 className="font-semibold">Soru {currentQuestionIndex + 1}</h3>
-            <p>{questions[currentQuestionIndex]?.text}</p>
-            <div className="text-sm text-gray-600 mt-2">
-              <span>
-                Kalan Süre: {Math.floor(timeLeft / 60)}:
-                {String(timeLeft % 60).padStart(2, "0")}
-              </span>
-            </div>
-          </div>
-          {currentQuestionIndex < questions.length - 1 && (
-            <button
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-              onClick={() => {
-                setRecordingStopped(false);
-                handleSkipQuestion();
-              }}
-            >
-              Skip
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 };

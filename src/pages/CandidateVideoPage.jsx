@@ -11,10 +11,12 @@ const CandidateList = () => {
   const {
     candidates,
     fetchCandidatesForInterview,
+    updateCandidateStatus, // Status update function
     loading,
     error,
     deleteCandidate,
   } = useCandidateStore();
+
   const { fetchVideoById, deleteVideo } = useVideoStore();
   const { interviewId } = useParams();
 
@@ -33,12 +35,12 @@ const CandidateList = () => {
           try {
             const videoData = await fetchVideoById(candidate.videoUrl);
             if (!videoData || !videoData.url) {
-              console.error("Video URL bulunamadı:", videoData);
+              console.error("Video URL not found:", videoData);
               return null;
             }
             return { [candidate._id]: videoData.url };
           } catch (err) {
-            console.error("Video yüklenemedi:", err);
+            console.error("Failed to load video:", err);
             return null;
           }
         })
@@ -53,21 +55,22 @@ const CandidateList = () => {
 
   const handleDelete = async (candidateId, videoId) => {
     try {
-      // Sil video
       await deleteVideo(videoId);
-      console.log(`Video deleted successfully: ${videoId}`);
-
-      // Sil adayı
       await deleteCandidate(candidateId);
-      console.log(`Candidate deleted successfully: ${candidateId}`);
     } catch (err) {
       console.error("Error during delete operation:", err);
-      // Handle the error appropriately
-      // For example, you might want to show an error message to the user
     }
   };
 
-  // Filter candidates based on search term
+  const handleStatusChange = async (candidateId, status) => {
+    try {
+      await updateCandidateStatus(candidateId, status);
+      setOpenModal(null);
+    } catch (error) {
+      console.error("Failed to update status:", error);
+    }
+  };
+
   const filteredCandidates = candidates.filter((candidate) =>
     `${candidate.firstName} ${candidate.lastName}`
       .toLowerCase()
@@ -107,7 +110,9 @@ const CandidateList = () => {
                   <h3 className="text-xl font-semibold">
                     {candidate.firstName} {candidate.lastName}
                   </h3>
-                  <p>Email: {candidate.email}</p>
+                  <p>{candidate.email}</p>
+                  <p>{candidate.phone}</p>
+                  <p>Status: {candidate.status}</p>
                   {videos[candidate._id] && (
                     <div className="mt-4 flex justify-between">
                       <button
@@ -132,12 +137,19 @@ const CandidateList = () => {
                   )}
                   {openModal === candidate._id && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                      <div className="bg-white p-4 rounded-lg max-w-md w-full relative">
+                      <div className="bg-white p-8 rounded-lg max-w-md w-full relative">
                         <button
                           onClick={() => setOpenModal(null)}
-                          className="absolute top-2 right-2 text-gray-700"
+                          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                         >
-                          Close
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            className="size-6"
+                          >
+                            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
+                          </svg>
                         </button>
                         <video width="100%" controls>
                           <source
@@ -146,6 +158,24 @@ const CandidateList = () => {
                           />
                           Your browser does not support the video tag.
                         </video>
+                        <div className="mt-4 flex justify-between">
+                          <button
+                            onClick={() =>
+                              handleStatusChange(candidate._id, "passed")
+                            }
+                            className="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(candidate._id, "failed")
+                            }
+                            className="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded"
+                          >
+                            Reject
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}

@@ -131,6 +131,31 @@ const useCandidateStore = create((set) => ({
       });
     }
   },
+
+  // Update candidate status
+  updateCandidateStatus: async (id, status) => {
+    set({ loading: true });
+    try {
+      const response = await axios.put(
+        `${API_URL}/api/candidates/${id}/status`,
+        { status }
+      );
+      set((state) => ({
+        candidates: state.candidates.map((candidate) =>
+          candidate._id === id
+            ? { ...candidate, status: response.data.status }
+            : candidate
+        ),
+        loading: false,
+      }));
+    } catch (error) {
+      set({
+        error:
+          error.response?.data?.message || "Failed to update candidate status",
+        loading: false,
+      });
+    }
+  },
 }));
 
 export default useCandidateStore;
