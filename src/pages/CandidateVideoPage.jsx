@@ -1,3 +1,4 @@
+// CandidateList.js
 import React, { useEffect, useState } from "react";
 import useCandidateStore from "../store/candidateStore";
 import useVideoStore from "../store/videoStore";
@@ -6,23 +7,24 @@ import Sidebar from "../components/Bar/sidebar";
 import DeleteButton from "../components/Buttons/DeleteButton";
 import LogoutButton from "../components/Buttons/LogoutButton";
 import SearchBar from "../components/Bar/SearchBar";
+import VideoModal from "../components/Popup/VideoModal";
 
 const CandidateList = () => {
   const {
     candidates,
     fetchCandidatesForInterview,
-    updateCandidateStatus, // Status update function
+    updateCandidateStatus,
     loading,
     error,
     deleteCandidate,
   } = useCandidateStore();
-
   const { fetchVideoById, deleteVideo } = useVideoStore();
   const { interviewId } = useParams();
 
   const [videos, setVideos] = useState({});
   const [openModal, setOpenModal] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [videoError, setVideoError] = useState(null);
 
   useEffect(() => {
     fetchCandidatesForInterview(interviewId);
@@ -34,18 +36,14 @@ const CandidateList = () => {
         candidates.map(async (candidate) => {
           try {
             const videoData = await fetchVideoById(candidate.videoUrl);
-            if (!videoData || !videoData.url) {
-              console.error("Video URL not found:", videoData);
-              return null;
-            }
-            return { [candidate._id]: videoData.url };
+            return { [candidate._id]: videoData?.url || null };
           } catch (err) {
             console.error("Failed to load video:", err);
-            return null;
+            return { [candidate._id]: null };
           }
         })
       );
-      setVideos(Object.assign({}, ...updatedVideos.filter(Boolean)));
+      setVideos(Object.assign({}, ...updatedVideos));
     };
 
     if (candidates.length > 0) {
@@ -59,6 +57,9 @@ const CandidateList = () => {
       await deleteCandidate(candidateId);
     } catch (err) {
       console.error("Error during delete operation:", err);
+      alert(
+        "Silme işlemi başarısız: Video bulunamadı veya daha önce silinmiş olabilir."
+      );
     }
   };
 
@@ -113,71 +114,37 @@ const CandidateList = () => {
                   <p>{candidate.email}</p>
                   <p>{candidate.phone}</p>
                   <p>Status: {candidate.status}</p>
-                  {videos[candidate._id] && (
-                    <div className="mt-4 flex justify-between">
+                  <div className="mt-4 flex justify-between">
+                    {/* Video varsa "View Video" butonunu, yoksa "Video bulunamadı" mesajını göster */}
+                    {videos[candidate._id] ? (
                       <button
-                        onClick={() => setOpenModal(candidate._id)}
+                        onClick={() => {
+                          setOpenModal(candidate._id);
+                          setVideoError(null);
+                        }}
                         className="text-blue-500 hover:text-blue-700"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 16 16"
-                          fill="currentColor"
-                          className="size-6"
-                        >
-                          <path d="M3 4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h5a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H3ZM15 4.75a.75.75 0 0 0-1.28-.53l-2 2a.75.75 0 0 0-.22.53v2.5c0 .199.079.39.22.53l2 2a.75.75 0 0 0 1.28-.53v-6.5Z" />
-                        </svg>
+                        View Video
                       </button>
-                      <DeleteButton
-                        onClick={() =>
-                          handleDelete(candidate._id, candidate.videoUrl)
-                        }
-                      />
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-gray-500">Video bulunamadı</p>
+                    )}
+                    {/* Sil butonu her zaman gösterilir */}
+                    <DeleteButton
+                      onClick={() =>
+                        handleDelete(candidate._id, candidate.videoUrl)
+                      }
+                    />
+                  </div>
                   {openModal === candidate._id && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                      <div className="bg-white p-8 rounded-lg max-w-md w-full relative">
-                        <button
-                          onClick={() => setOpenModal(null)}
-                          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 16 16"
-                            fill="currentColor"
-                            className="size-6"
-                          >
-                            <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
-                          </svg>
-                        </button>
-                        <video width="100%" controls>
-                          <source
-                            src={videos[candidate._id]}
-                            type="video/mp4"
-                          />
-                          Your browser does not support the video tag.
-                        </video>
-                        <div className="mt-4 flex justify-between">
-                          <button
-                            onClick={() =>
-                              handleStatusChange(candidate._id, "passed")
-                            }
-                            className="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(candidate._id, "failed")
-                            }
-                            className="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <VideoModal
+                      candidate={candidate}
+                      videoUrl={videos[candidate._id]}
+                      onClose={() => setOpenModal(null)}
+                      onStatusChange={handleStatusChange}
+                      onDelete={handleDelete}
+                      error={!videos[candidate._id] || videoError}
+                    />
                   )}
                 </div>
               ))}
