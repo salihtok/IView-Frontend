@@ -48,6 +48,7 @@ const useCandidateStore = create((set) => ({
     phone,
     kvkk,
     videoUrl,
+    filePath,
   }) => {
     set({ loading: true, error: null });
     try {
@@ -59,6 +60,7 @@ const useCandidateStore = create((set) => ({
         phone,
         kvkk,
         videoUrl,
+        filePath,
       });
       set((state) => ({
         candidates: [...state.candidates, response.data],
@@ -152,6 +154,30 @@ const useCandidateStore = create((set) => ({
       set({
         error:
           error.response?.data?.message || "Failed to update candidate status",
+        loading: false,
+      });
+    }
+  },
+  analyzeCandidateVideo: async (candidateId, filePath) => {
+    console.log("Analyze Candidate ID:", candidateId);
+    console.log("Analyze Video Filepath:", filePath);
+    set({ loading: true });
+    try {
+      const response = await axios.post("http://localhost:5000/process_video", {
+        video_id: filePath,
+        candidate_id: candidateId,
+      });
+      console.log("Analiz Sonuçları:", response.data);
+      set((state) => ({
+        candidates: state.candidates.map((cand) =>
+          cand._id === candidateId ? { ...cand, result: response.data } : cand
+        ),
+        loading: false,
+      }));
+    } catch (error) {
+      console.error("Analiz işlemi sırasında hata oluştu:", error);
+      set({
+        error: error.response?.data?.message || "Failed to analyze video",
         loading: false,
       });
     }

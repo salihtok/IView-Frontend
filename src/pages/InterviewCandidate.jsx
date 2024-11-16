@@ -3,6 +3,7 @@ import { ReactMediaRecorder } from "react-media-recorder";
 import Webcam from "react-webcam";
 import useCandidateStore from "../store/candidateStore";
 import useVideoStore from "../store/videoStore";
+import SkipButton from "../components/Buttons/SkipButton";
 
 const InterviewPage = ({ interview, formData }) => {
   const { submitInterview } = useCandidateStore();
@@ -12,6 +13,7 @@ const InterviewPage = ({ interview, formData }) => {
   const [videoStarted, setVideoStarted] = useState(false);
   const [recordingStopped, setRecordingStopped] = useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState(null);
+  const [filePath, setFilePath] = useState(null);
   const [mediaBlobUrl, setMediaBlobUrl] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -54,6 +56,19 @@ const InterviewPage = ({ interview, formData }) => {
 
   const handleSkipQuestion = () => goToNextQuestion();
 
+  useEffect(() => {
+    console.log("uploadedVideoUrl:", uploadedVideoUrl);
+    console.log("filePath:", filePath);
+    console.log("recordingStopped:", recordingStopped);
+  }, [uploadedVideoUrl, filePath, recordingStopped]);
+
+  useEffect(() => {
+    if (uploadedVideoUrl && filePath) {
+      console.log("Updated uploadedVideoUrl:", uploadedVideoUrl);
+      console.log("Updated filePath:", filePath);
+    }
+  }, [uploadedVideoUrl, filePath]);
+
   const handleUploadVideo = async () => {
     if (!mediaBlobUrl) return;
     setIsUploading(true);
@@ -65,8 +80,13 @@ const InterviewPage = ({ interview, formData }) => {
       const videoFile = new File([blob], "recording.mp4", {
         type: "video/mp4",
       });
-      const videoUrl = await uploadVideo(videoFile);
-      setUploadedVideoUrl(videoUrl);
+
+      const responseData = await uploadVideo(videoFile);
+
+      // Video ID ve dosya yolu verisini ayarlayın
+      console.log("Full Response Data:", responseData);
+      setUploadedVideoUrl(responseData.videoId);
+      setFilePath(responseData.filePath);
     } catch (error) {
       console.error("Video upload error:", error);
     } finally {
@@ -75,7 +95,7 @@ const InterviewPage = ({ interview, formData }) => {
   };
 
   const handleCompleteInterview = async () => {
-    if (!uploadedVideoUrl) {
+    if (!uploadedVideoUrl || !filePath) {
       alert("Please wait for the video to finish uploading.");
       return;
     }
@@ -85,6 +105,7 @@ const InterviewPage = ({ interview, formData }) => {
         interviewId: interview._id,
         ...formData,
         videoUrl: uploadedVideoUrl,
+        filePath: filePath,
       });
       alert("Interview completed successfully.");
       window.location.reload();
@@ -191,19 +212,7 @@ const InterviewPage = ({ interview, formData }) => {
                     </div>
 
                     {currentQuestionIndex < questions.length - 1 ? (
-                      <button
-                        className="px-4 py-2 bg-blue-500 text-white rounded"
-                        onClick={handleSkipQuestion}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 16 16"
-                          fill="currentColor"
-                          className="size-6"
-                        >
-                          <path d="M2.53 3.956A1 1 0 0 0 1 4.804v6.392a1 1 0 0 0 1.53.848l5.113-3.196c.16-.1.279-.233.357-.383v2.73a1 1 0 0 0 1.53.849l5.113-3.196a1 1 0 0 0 0-1.696L9.53 3.956A1 1 0 0 0 8 4.804v2.731a.992.992 0 0 0-.357-.383L2.53 3.956Z" />
-                        </svg>
-                      </button>
+                      <SkipButton onClick={handleSkipQuestion} />
                     ) : (
                       <button
                         className="px-4 py-2 bg-green-600 text-white rounded"
@@ -214,7 +223,7 @@ const InterviewPage = ({ interview, formData }) => {
                     )}
                   </div>
                 )}
-                {recordingStopped && uploadedVideoUrl && (
+                {recordingStopped && uploadedVideoUrl && filePath && (
                   <div className="flex justify-center w-full mt-4">
                     <button
                       onClick={handleCompleteInterview}

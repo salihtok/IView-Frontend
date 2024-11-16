@@ -33,11 +33,16 @@ const useVideoStore = create((set) => ({
       });
 
       const videoData = response.data.files?.[0];
-      console.log("Video data:", videoData.fileId);
-      if (videoData?.fileId) {
-        return videoData.fileId; // Sadece fileId’i döndürür.
+      console.log("Video data:", videoData); // Yanıtı kontrol edin
+
+      if (videoData?.fileId && videoData?.filePath) {
+        // Sadece dosya adını almak için split kullanımı
+        const fileName = videoData.filePath.split("/").pop(); // Örneğin: "1731619132754.mp4"
+
+        // Dosya adı ve video ID döndürülür
+        return { videoId: videoData.fileId, filePath: fileName };
       } else {
-        throw new Error("Video yüklenemedi: fileId alınamadı.");
+        throw new Error("Video yüklenemedi: filePath veya fileId eksik.");
       }
     } catch (error) {
       set({ error: "Video yüklenemedi.", loading: false });
