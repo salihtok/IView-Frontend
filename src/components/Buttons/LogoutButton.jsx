@@ -7,8 +7,12 @@ const LogoutButton = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logoutAdmin();
-    navigate("/admin-login");
+    const confirmLogout = window.confirm("Are you sure you want to log out?");
+    
+    if (confirmLogout) {
+      await logoutAdmin();
+      navigate("/admin-login");
+    }
   };
 
   return (

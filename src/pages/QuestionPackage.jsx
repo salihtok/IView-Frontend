@@ -59,6 +59,7 @@ export const QuestionPackage = () => {
                 setSearchTerm={setSearchTerm}
                 placeholder="Search packages..."
               />
+              
               <AddButton
                 onClick={() => setShowAddPopup(true)}
                 id="addQuestionPackageBtn"
@@ -99,23 +100,30 @@ export const QuestionPackage = () => {
           )}
         </div>
       </div>
-
       {showAddPopup && (
-        <AddPackagePopup
-          onClose={() => setShowAddPopup(false)}
-          onAdd={handleAddPackage}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-[98%] max-w-[1400px] max-h-[98vh] overflow-y-auto">
+            <AddPackagePopup
+              onClose={() => setShowAddPopup(false)}
+              onAdd={handleAddPackage}
+            />
+          </div>
+        </div>
       )}
 
       {showEditPopup && (
-        <EditPackagePopup
-          packageId={currentPackageId}
-          onClose={() => setShowEditPopup(false)}
-          onUpdate={() => {
-            fetchQuestions(); // Güncellemeyi yaptıktan sonra soruları yeniden yükleyin
-            setShowEditPopup(false); // Popup'ı kapat
-          }}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-[98%] max-w-[1400px] max-h-[98vh] overflow-y-auto">
+            <EditPackagePopup
+              packageId={currentPackageId}
+              onClose={() => setShowEditPopup(false)}
+              onUpdate={() => {
+                fetchQuestions();
+                setShowEditPopup(false);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

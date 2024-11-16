@@ -8,11 +8,14 @@ import DeleteButton from "../components/Buttons/DeleteButton";
 import LogoutButton from "../components/Buttons/LogoutButton";
 import SearchBar from "../components/Bar/SearchBar";
 import VideoModal from "../components/Popup/VideoModal";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const CandidateList = () => {
   const {
     candidates,
     fetchCandidatesForInterview,
+    analyzeCandidateVideo,
     updateCandidateStatus,
     loading,
     error,
@@ -51,15 +54,31 @@ const CandidateList = () => {
     }
   }, [candidates, fetchVideoById]);
 
+  const handleAnalyzeVideo = async (candidateId, filePath) => {
+    try {
+      const response = await analyzeCandidateVideo(candidateId, filePath); // filepath'i ilet
+      console.log("Analiz Sonuçları:", response.data);
+    } catch (error) {
+      console.error("Analiz işlemi sırasında hata oluştu:", error);
+    }
+  };
+
   const handleDelete = async (candidateId, videoId) => {
     try {
       await deleteVideo(videoId);
       await deleteCandidate(candidateId);
+      toast.success("Candidate deleted successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "colored",
+      });
     } catch (err) {
       console.error("Error during delete operation:", err);
-      alert(
-        "Silme işlemi başarısız: Video bulunamadı veya daha önce silinmiş olabilir."
-      );
+      toast.error("Delete failed: Video not found or already deleted", {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "colored",
+      });
     }
   };
 
@@ -67,8 +86,18 @@ const CandidateList = () => {
     try {
       await updateCandidateStatus(candidateId, status);
       setOpenModal(null);
+      toast.success("Status updated successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "colored",
+      });
     } catch (error) {
       console.error("Failed to update status:", error);
+      toast.error("Failed to update status", {
+        position: "top-right",
+        autoClose: 3000,
+        theme: "colored",
+      });
     }
   };
 
@@ -113,6 +142,13 @@ const CandidateList = () => {
                   </h3>
                   <p>{candidate.email}</p>
                   <p>{candidate.phone}</p>
+                  <p>
+                    Transcription: {candidate.result?.transcription || "N/A"}
+                  </p>
+                  <p>
+                    Face Analysis:{" "}
+                    {JSON.stringify(candidate.result?.face_analysis) || "N/A"}
+                  </p>
                   <p>Status: {candidate.status}</p>
                   <div className="mt-4 flex justify-between">
                     {/* Video varsa "View Video" butonunu, yoksa "Video bulunamadı" mesajını göster */}
@@ -129,6 +165,17 @@ const CandidateList = () => {
                     ) : (
                       <p className="text-gray-500">Video bulunamadı</p>
                     )}
+                     {/* Analyze Video Butonu */}
+
+                     <button
+                      onClick={
+                        () =>
+                          handleAnalyzeVideo(candidate._id, candidate.filePath)
+                      }
+                      className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded"
+                    >
+                      Analyze Video
+                    </button>
                     {/* Sil butonu her zaman gösterilir */}
                     <DeleteButton
                       onClick={() =>
@@ -152,6 +199,16 @@ const CandidateList = () => {
           )}
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };

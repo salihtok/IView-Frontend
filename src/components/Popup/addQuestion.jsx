@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import useQuestionsStore from "../../store/questionStore";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 
 const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
   const [question, setQuestion] = useState(selectedQuestion?.text || "");
@@ -7,6 +10,7 @@ const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
     minutes: selectedQuestion?.questionTime?.minutes || 0,
     seconds: selectedQuestion?.questionTime?.seconds || 0,
   });
+  const [errors, setErrors] = useState({});
 
   const { createQuestion, updateQuestion } = useQuestionsStore();
 
@@ -20,91 +24,144 @@ const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
     }
   }, [selectedQuestion]);
 
-  const handleSave = () => {
-    // Verileri konsolda kontrol edin
-    console.log("Question Time (Before Save):", questionTime);
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!question.trim()) {
+      newErrors.question = "Question text is required";
+    }
+    
+    if (questionTime.minutes === 0 && questionTime.seconds === 0) {
+      newErrors.time = "Please set a time limit";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
+  const handleSave = () => {
+    if (!validateForm()) {
+      toast.error('Please fix the form errors before submitting');
+      return;
+    }
+    
     const questionData = { text: question, questionTime };
 
-    // Gönderilen veriyi kontrol edin
-    console.log("Sending questionData:", questionData);
-
-    if (selectedQuestion) {
-      // Güncelleme işlemi
-      updateQuestion(selectedQuestion._id, questionData);
-    } else {
-      // Yeni soru ekleme işlemi
-      createQuestion(questionData);
+    try {
+      if (selectedQuestion) {
+        updateQuestion(selectedQuestion._id, questionData);
+        toast.success('Question updated successfully!');
+      } else {
+        createQuestion(questionData);
+        toast.success('Question added successfully!');
+      }
+      onClose();
+    } catch (error) {
+      toast.error('An error occurred while saving the question');
     }
+  };
 
-    onClose();
+  const handleOutsideClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
   };
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-96 relative">
-        <h2 className="text-lg font-bold mb-4">
+    <div 
+      className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50 z-50 p-4"
+      onClick={handleOutsideClick}
+    >
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-[600px] max-h-[90vh] flex flex-col">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4">
           {selectedQuestion ? "Update Question" : "Add Question"}
         </h2>
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Question</label>
+
+        <div className="mb-6">
+          <label className="block font-medium mb-2">Question</label>
           <textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            className="w-full border-gray-300 rounded-lg p-2"
-            placeholder="Input..."
-            rows="3"
+            className="w-full border border-gray-300 rounded-lg p-2 sm:p-3 min-h-[120px]"
+            placeholder="Input your question here..."
+            rows="4"
           ></textarea>
+          {errors.question && (
+            <p className="text-red-500 text-sm mt-1">{errors.question}</p>
+          )}
         </div>
-        <div className="mb-4">
-          <label className="block font-medium mb-1">Duration (minutes)</label>
-          <input
-            type="number"
-            value={questionTime.minutes}
-            onChange={(e) =>
-              setQuestionTime({
-                ...questionTime,
-                minutes: parseInt(e.target.value, 10) || 0,
-              })
-            }
-            className="w-full border-gray-300 rounded-lg p-2"
-            min="0"
-            placeholder="Minutes"
-          />
 
-          <label className="block font-medium mb-1 mt-4">
-            Duration (seconds)
-          </label>
-          <input
-            type="number"
-            value={questionTime.seconds}
-            onChange={(e) =>
-              setQuestionTime({
-                ...questionTime,
-                seconds: parseInt(e.target.value, 10) || 0,
-              })
-            }
-            className="w-full border-gray-300 rounded-lg p-2"
-            min="0"
-            max="59"
-            placeholder="Seconds"
-          />
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block font-medium mb-2">Minutes</label>
+            <input
+              type="number"
+              value={questionTime.minutes}
+              onChange={(e) =>
+                setQuestionTime({
+                  ...questionTime,
+                  minutes: parseInt(e.target.value, 10) || 0,
+                })
+              }
+              className="w-full border border-gray-300 rounded-lg p-2 sm:p-3"
+              min="0"
+              placeholder="0"
+            />
+          </div>
+
+          <div>
+            <label className="block font-medium mb-2">Seconds</label>
+            <input
+              type="number"
+              value={questionTime.seconds}
+              onChange={(e) =>
+                setQuestionTime({
+                  ...questionTime,
+                  seconds: parseInt(e.target.value, 10) || 0,
+                })
+              }
+              className="w-full border border-gray-300 rounded-lg p-2 sm:p-3"
+              min="0"
+              max="59"
+              placeholder="0"
+            />
+          </div>
+          {errors.time && (
+            <p className="text-red-500 text-sm mt-1 col-span-2">{errors.time}</p>
+          )}
         </div>
-        <div className="flex justify-between">
-          <button
-            onClick={handleSave}
-            className="bg-blue-500 text-white p-2 rounded w-2/5"
-          >
-            {selectedQuestion ? "Update" : "Add"}
-          </button>
+
+        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-auto pt-2 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="bg-gray-500 text-white p-2 rounded w-2/5"
+            className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 w-full sm:w-auto"
           >
             Cancel
           </button>
+          <button
+            onClick={handleSave}
+            disabled={!question.trim() || (questionTime.minutes === 0 && questionTime.seconds === 0)}
+            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg w-full sm:w-auto ${
+              !question.trim() || (questionTime.minutes === 0 && questionTime.seconds === 0)
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {selectedQuestion ? "Update" : "Add"}
+          </button>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };

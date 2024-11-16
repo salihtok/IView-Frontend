@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import useInterviewStore from "../../store/interviewStore";
 import useQuestionsPackageStore from "../../store/questionPackageStore";
+import { toast } from "react-toastify";
 
 const EditInterviewPopup = ({ interviewId, onClose }) => {
   const { interview, fetchInterviewById, updateInterview, loading, error } =
@@ -13,33 +14,65 @@ const EditInterviewPopup = ({ interviewId, onClose }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await fetchInterviewById(interviewId); // Fetch the interview details by ID
-      await fetchQuestions(); // Fetch the question packages
+      // const toastId = toast.info("Loading data...", {
+      //   toastId: 'loading-data'  // Unique ID for loading toast
+      // });
+      try {
+        await Promise.all([
+          fetchInterviewById(interviewId),
+          fetchQuestions()
+        ]);
+        toast.dismiss(toastId);
+        toast.success("Data loaded", {
+          toastId: 'data-loaded'  // Unique ID for success toast
+        });
+      } catch (err) {
+        toast.dismiss(toastId);
+        toast.error("Failed to load data", {
+          toastId: 'data-error'   // Unique ID for error toast
+        });
+      }
     };
     fetchData();
   }, [interviewId, fetchInterviewById, fetchQuestions]);
 
   useEffect(() => {
     if (interview) {
-      setTitle(interview.title);
-      setSelectedPackages(
-        new Set(interview.questionPackage.map((pkg) => pkg._id))
-      ); // Set selected question packages
-      const formattedDate = new Date(interview.expireDate)
-        .toISOString()
-        .slice(0, 16); // Format expire date
-      setExpireDate(formattedDate);
+      try {
+        setTitle(interview.title);
+        setSelectedPackages(
+          new Set(interview.questionPackage.map((pkg) => pkg._id))
+        );
+        const formattedDate = new Date(interview.expireDate)
+          .toISOString()
+          .slice(0, 16);
+        setExpireDate(formattedDate);
+      } catch (err) {
+        toast.error("Error processing interview data");
+      }
     }
   }, [interview]);
 
   const handleUpdate = async () => {
-    const updateData = {
-      title,
-      questionPackage: Array.from(selectedPackages),
-      expireDate,
-    }; // Convert Set to Array
-    await updateInterview(interviewId, updateData); // Update interview data
-    onClose(); // Close the popup after update
+    try {
+      toast.info("Updating...", {
+        toastId: 'updating'       // Unique ID for updating toast
+      });
+      const updateData = {
+        title,
+        questionPackage: Array.from(selectedPackages),
+        expireDate,
+      };
+      await updateInterview(interviewId, updateData);
+      toast.success("Updated successfully", {
+        toastId: 'update-success' // Unique ID for update success toast
+      });
+      onClose();
+    } catch (error) {
+      toast.error("Update failed", {
+        toastId: 'update-error'   // Unique ID for update error toast
+      });
+    }
   };
 
   const togglePackageSelection = (pkgId) => {
@@ -123,7 +156,12 @@ const EditInterviewPopup = ({ interviewId, onClose }) => {
         <div className="flex justify-between">
           <button
             onClick={handleUpdate}
-            className="bg-blue-500 text-white p-2 rounded w-2/5"
+            disabled={selectedPackages.size === 0 || !title.trim() || !expireDate}
+            className={`p-2 rounded w-2/5 text-white ${
+              selectedPackages.size === 0 || !title.trim() || !expireDate
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-blue-500'
+            }`}
           >
             Update Interview
           </button>

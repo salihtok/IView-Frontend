@@ -40,6 +40,11 @@ export const InterviewList = () => {
 
   const handleDeleteInterview = (id) => {
     deleteInterview(id);
+    toast.success("Interview deleted successfully!", {
+      position: "top-right",
+      autoClose: 3000,
+      theme: "colored",
+    });
   };
 
   const handleEditInterview = (interview) => {
