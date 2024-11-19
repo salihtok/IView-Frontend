@@ -5,7 +5,7 @@ const AddButton = ({ onClick, id }) => {
   return (
     <button
       id={id}
-      className="ml-2 px-1 py-1 text-gray-400 hover:text-gray-700 rounded"
+      className="ml-2 px-1 py-1 text-yellow-400 hover:text-yellow-700 rounded"
       onClick={onClick}
     >
       <svg

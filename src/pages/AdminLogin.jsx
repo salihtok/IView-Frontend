@@ -19,14 +19,18 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-between items-center min-h-screen relative">
-      <img
-        src="./src/assets/images/login.jpg"
-        alt="Login illustration"
-        className="w-full object-cover h-screen"
-      />
-      {/* Sol taraf (Admin Login) */}
-      <div className="bg-gray-200 bg-opacity-80 p-12 rounded-lg shadow-md w-2/6 absolute left-[22%] transform -translate-x-1/2 z-10">
+    <div className="flex justify-between items-center min-h-screen relative bg-[rgb(240,250,249)]">
+      {/* Login Container */}
+      <div className="bg-[rgb(240,250,249)] p-12 rounded-lg shadow-md w-2/6 mx-auto">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <img
+            src="/logo.svg"
+            alt="Company Logo"
+            className="h-12 w-auto"
+          />
+        </div>
+        
         <h2 className="text-2xl font-semibold text-gray-700 mb-8">
           Admin Log in Page
         </h2>

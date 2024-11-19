@@ -67,12 +67,19 @@ const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
     }
   };
 
+  const handleContentClick = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <div 
       className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50 z-50 p-4"
       onClick={handleOutsideClick}
     >
-      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-[600px] max-h-[90vh] flex flex-col">
+      <div 
+        className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-[600px] max-h-[90vh] flex flex-col"
+        onClick={handleContentClick}
+      >
         <h2 className="text-xl sm:text-2xl font-bold mb-4">
           {selectedQuestion ? "Update Question" : "Add Question"}
         </h2>
@@ -144,7 +151,7 @@ const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
             className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg w-full sm:w-auto ${
               !question.trim() || (questionTime.minutes === 0 && questionTime.seconds === 0)
                 ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                : 'bg-[#30847f] hover:bg-[#277571] text-white'
             }`}
           >
             {selectedQuestion ? "Update" : "Add"}

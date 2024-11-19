@@ -47,19 +47,19 @@ const QuestionPage = () => {
   );
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen">
-      {/* Sidebar - fixed position on mobile, sticky on desktop */}
-      <div className="flex h-screen md:sticky md:top-0 md:h-screen">
+    <div className="flex min-h-screen">
+      {/* Sidebar - fixed width and position */}
+      <div className="w-64 fixed h-screen">
         <Sidebar />
       </div>
 
-      {/* Main content - scrollable */}
-      <div className="flex-1 overflow-auto bg-gray-100">
+      {/* Main content - with left margin to prevent overlap */}
+      <div className="flex-1 ml-64">
         <div className="p-4 md:p-6">
-          <div className="bg-white shadow-lg rounded-lg p-4 md:p-6">
+          <div className="bg-[rgb(240,250,249)] shadow-lg rounded-lg p-4 md:p-6">
             {/* Header Section */}
             <div className="sticky top-0 bg-white z-10 mb-4">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[rgb(240,250,249)]">
                 <h2 className="text-xl font-bold">Question List</h2>
                 <div className="flex flex-col sm:flex-row items-stretch md:items-center gap-2 w-full md:w-auto">
                   <div className="flex-grow">
@@ -89,10 +89,10 @@ const QuestionPage = () => {
             )}
 
             {/* Table Container */}
-            <div className="w-full">
+            <div className="w-full bg-white rounded-lg shadow-md">
               <table className="w-full table-fixed divide-y divide-gray-300">
                 <thead>
-                  <tr className="bg-gray-200">
+                  <tr className="bg-white-200">
                     <th scope="col" className="w-16 py-3 px-4 text-left text-sm font-semibold text-gray-600">Order</th>
                     <th scope="col" className="w-[60%] py-3 px-4 text-left text-sm font-semibold text-gray-600">Question</th>
                     <th scope="col" className="w-32 py-3 px-4 text-left text-sm font-semibold text-gray-600">Time</th>

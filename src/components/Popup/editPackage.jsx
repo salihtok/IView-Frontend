@@ -59,12 +59,19 @@ const EditPackagePopup = ({ packageId, onClose, onUpdate }) => {
     }
   };
 
+  const handleContentClick = (e) => {
+    e.stopPropagation();
+  };
+
   return (
     <div 
       className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50 z-50 p-4"
       onClick={handleOutsideClick}
     >
-      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-[900px] max-h-[90vh] flex flex-col">
+      <div 
+        className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-[900px] max-h-[90vh] flex flex-col"
+        onClick={handleContentClick}
+      >
         <h2 className="text-xl sm:text-2xl font-bold mb-4">Edit Question Package</h2>
 
         <div className="mb-4">
@@ -121,7 +128,7 @@ const EditPackagePopup = ({ packageId, onClose, onUpdate }) => {
             className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg ${
               selectedQuestions.length === 0 || !packageName.trim()
                 ? 'bg-gray-300 cursor-not-allowed'
-                : 'bg-blue-500 hover:bg-blue-600'
+                : 'bg-[#30847f] hover:bg-[#277571]'
             } text-white w-full sm:w-auto`}
           >
             Update Package

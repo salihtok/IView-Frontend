@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   return (
-    <aside className="w-64 bg-gray-200 p-4">
+    <aside className="fixed h-screen w-64 bg-[#F0FAF9] p-4 shadow-lg">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Admin Panel</h1>
+        <h1 className="text-2xl font-bold">Remote Tech Admin Panel</h1>
       </div>
 
-      <hr className="my-4 border-gray-300" />
+      <hr className="my-4 border-gray-00" />
       <div>
         <ul>
           <li className="mb-4">
