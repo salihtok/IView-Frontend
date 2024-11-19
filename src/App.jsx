@@ -10,7 +10,6 @@ import NotFound from "./pages/NotFound";
 import QuestionPage from "./pages/QuestionPage";
 import QuestionPackage from "./pages/QuestionPackage";
 import InterviewList from "./pages/InterviewAdminPage";
-import CandideLink from "./pages/LinkPage";
 import CandidateVideoPage from "./pages/CandidateVideoPage";
 
 function App() {
@@ -23,7 +22,6 @@ function App() {
         <Route path="/questionsList" element={<QuestionPage />} />
         <Route path="/question-package" element={<QuestionPackage />} />
         <Route path="/interview" element={<InterviewList />} />
-        <Route path="/interview/:uuid" element={<CandideLink />} />
         <Route path="/interview/:interviewId/candidates" element={<CandidateVideoPage />} />
         <Route path="*" element={<NotFound />} /> {/* 404 sayfası */}
       </Routes>

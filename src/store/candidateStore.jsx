@@ -39,44 +39,6 @@ const useCandidateStore = create((set) => ({
     }
   },
 
-  // Video mülakatı tamamlama (tüm bilgileri gönderme)
-  submitInterview: async ({
-    interviewId,
-    firstName,
-    lastName,
-    email,
-    phone,
-    kvkk,
-    videoUrl,
-    filePath,
-  }) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await axios.post(`${API_URL}/api/candidates/submit`, {
-        interviewId,
-        firstName,
-        lastName,
-        email,
-        phone,
-        kvkk,
-        videoUrl,
-        filePath,
-      });
-      set((state) => ({
-        candidates: [...state.candidates, response.data],
-        loading: false,
-      }));
-      return response.data;
-    } catch (error) {
-      const errorMessage =
-        error.response && error.response.data.message
-          ? error.response.data.message
-          : "Mülakat tamamlanamadı";
-      set({ error: errorMessage, loading: false });
-      throw new Error(errorMessage);
-    }
-  },
-
   // Mevcut bir adayı günceller
   updateCandidate: async (id, updatedData) => {
     set({ loading: true });
