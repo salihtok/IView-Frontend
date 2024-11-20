@@ -21,35 +21,6 @@ const useVideoStore = create((set) => ({
     }
   },
 
-  // Yükleme fonksiyonu: sadece filePath döner
-  uploadVideo: async (file) => {
-    set({ loading: true, error: null });
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await axios.post(`${API_URL}/api/videos`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      const videoData = response.data.files?.[0];
-      console.log("Video data:", videoData); // Yanıtı kontrol edin
-
-      if (videoData?.fileId && videoData?.filePath) {
-        // Sadece dosya adını almak için split kullanımı
-        const fileName = videoData.filePath.split("/").pop(); // Örneğin: "1731619132754.mp4"
-
-        // Dosya adı ve video ID döndürülür
-        return { videoId: videoData.fileId, filePath: fileName };
-      } else {
-        throw new Error("Video yüklenemedi: filePath veya fileId eksik.");
-      }
-    } catch (error) {
-      set({ error: "Video yüklenemedi.", loading: false });
-      throw error;
-    }
-  },
-
   // Belirli bir videoyu getir
   fetchVideoById: async (id) => {
     console.log("fetchVideoById:", id);
