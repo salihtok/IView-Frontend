@@ -61,24 +61,12 @@ const AddQuestionPopup = ({ onClose, selectedQuestion }) => {
     }
   };
 
-  const handleOutsideClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  const handleContentClick = (e) => {
-    e.stopPropagation();
-  };
-
   return (
     <div 
       className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50 z-50 p-4"
-      onClick={handleOutsideClick}
     >
       <div 
         className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-[600px] max-h-[90vh] flex flex-col"
-        onClick={handleContentClick}
       >
         <h2 className="text-xl sm:text-2xl font-bold mb-4">
           {selectedQuestion ? "Update Question" : "Add Question"}

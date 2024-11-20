@@ -10,6 +10,7 @@ import SearchBar from "../components/Bar/SearchBar";
 import VideoModal from "../components/Popup/VideoModal";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaEye, FaEyeSlash, FaChartBar } from "react-icons/fa";
 
 const CandidateList = () => {
   const {
@@ -119,9 +120,9 @@ const CandidateList = () => {
       
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="p-6 flex-1 overflow-auto bg-gray-100">
-          <div className="bg-white shadow-lg rounded-lg p-6">
+          <div className="bg-[#F0FAF9] shadow-lg rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Candidates for Interview</h2>
+              <h2 className="text-xl font-bold text-black">Candidates for Interview</h2>
               <div className="flex items-center gap-4">
                 <SearchBar
                   searchTerm={searchTerm}
@@ -137,9 +138,14 @@ const CandidateList = () => {
                 No candidates match your search.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {filteredCandidates.map((candidate) => (
-                  <div key={candidate._id} className="bg-white shadow-lg rounded-lg p-4 flex flex-col">
+                  <div key={candidate._id} className="bg-white shadow-lg rounded-lg p-4 flex flex-col relative">
+                    <div className="absolute top-2 right-2">
+                      <DeleteButton
+                        onClick={() => handleDelete(candidate._id, candidate.videoUrl)}
+                      />
+                    </div>
                     <h3 className="text-lg md:text-xl font-semibold break-words">
                       {candidate.firstName} {candidate.lastName}
                     </h3>
@@ -148,9 +154,13 @@ const CandidateList = () => {
                     
                     <button
                       onClick={() => setShowAnalysis(prev => ({...prev, [candidate._id]: !prev[candidate._id]}))}
-                      className="text-sm text-blue-500 hover:text-blue-700 mt-2 mb-1"
+                      className="flex items-center gap-2 text-blue-500 hover:text-blue-700 mt-2 mb-1"
                     >
-                      {showAnalysis[candidate._id] ? 'Hide Analysis' : 'Show Analysis'}
+                      {showAnalysis[candidate._id] ? (
+                        <><FaEyeSlash className="w-4 h-4" /> Hide Analysis</>
+                      ) : (
+                        <><FaEye className="w-4 h-4" /> Show Analysis</>
+                      )}
                     </button>
                     
                     {showAnalysis[candidate._id] && (
@@ -165,8 +175,7 @@ const CandidateList = () => {
                       </>
                     )}
                     <p>Status: {candidate.status}</p>
-                    <div className="mt-4 flex justify-between">
-                      {/* Video varsa "View Video" butonunu, yoksa "Video bulunamadı" mesajını göster */}
+                    <div className="mt-4 flex gap-3">
                       {videos[candidate._id] ? (
                         <button
                           onClick={() => {
@@ -180,23 +189,14 @@ const CandidateList = () => {
                       ) : (
                         <p className="text-gray-500">Video bulunamadı</p>
                       )}
-                       {/* Analyze Video Butonu */}
-
-                       <button
-                        onClick={
-                          () =>
-                            handleAnalyzeVideo(candidate._id, candidate.filePath)
-                        }
-                        className="bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded"
+                      
+                      <button
+                        onClick={() => handleAnalyzeVideo(candidate._id, candidate.filePath)}
+                        className="flex items-center gap-2 text-blue-500 hover:text-blue-700"
                       >
-                        Analyze Video
+                        <FaChartBar className="w-4 h-4" />
+                        Analyze
                       </button>
-                      {/* Sil butonu her zaman gösterilir */}
-                      <DeleteButton
-                        onClick={() =>
-                          handleDelete(candidate._id, candidate.videoUrl)
-                        }
-                      />
                     </div>
                     {openModal === candidate._id && (
                       <VideoModal
