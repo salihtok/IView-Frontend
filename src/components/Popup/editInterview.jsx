@@ -85,27 +85,15 @@ const EditInterviewPopup = ({ interviewId, onClose }) => {
     setSelectedPackages(newSelectedPackages); // Update the state with new selected packages
   };
 
-  const handleOutsideClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  const handleContentClick = (e) => {
-    e.stopPropagation();
-  };
-
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
   return (
     <div 
       className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center"
-      onClick={handleOutsideClick}
     >
       <div 
         className="bg-white p-6 rounded-lg w-96"
-        onClick={handleContentClick}
       >
         <h3 className="text-xl font-bold mb-4">Edit Interview</h3>
 
