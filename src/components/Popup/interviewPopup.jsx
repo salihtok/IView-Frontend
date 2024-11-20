@@ -54,85 +54,101 @@ const InterviewPopup = ({ onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-96">
-        <h3 className="text-xl font-bold mb-4">Add New Interview</h3>
+    <div className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50 z-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-[600px] h-[80vh] flex flex-col">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4">Add New Interview</h2>
 
-        <input
-          type="text"
-          placeholder="Interview Title"
-          value={newInterview.title}
-          onChange={(e) =>
-            setNewInterview({ ...newInterview, title: e.target.value })
-          }
-          className="border p-2 mb-2 w-full"
-        />
+        <div className="flex-1 overflow-y-auto pr-2">
+          <div className="mb-6">
+            <label className="block font-medium mb-2">Interview Title</label>
+            <input
+              type="text"
+              placeholder="Interview Title"
+              value={newInterview.title}
+              onChange={(e) =>
+                setNewInterview({ ...newInterview, title: e.target.value })
+              }
+              className="w-full border border-gray-300 rounded-lg p-2 sm:p-3"
+            />
+          </div>
 
-        <select
-          multiple
-          onChange={handleQuestionPackageChange}
-          className="border p-2 mb-2 w-full"
-        >
-          <option disabled>Select Question Packages</option>
-          {questionsLoading ? (
-            <option>Loading...</option>
-          ) : (
-            questions.map((pkg) => (
-              <option key={pkg._id} value={pkg._id}>
-                {pkg.name}
-              </option>
-            ))
-          )}
-        </select>
+          <div className="mb-6">
+            <label className="block font-medium mb-2">Question Packages</label>
+            <select
+              multiple
+              onChange={handleQuestionPackageChange}
+              className="w-full border border-gray-300 rounded-lg p-2 sm:p-3 min-h-[120px]"
+            >
+              <option disabled>Select Question Packages</option>
+              {questionsLoading ? (
+                <option>Loading...</option>
+              ) : (
+                questions.map((pkg) => (
+                  <option key={pkg._id} value={pkg._id}>
+                    {pkg.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
 
-        <div className="mb-4">
-          <h4 className="font-bold">Selected Packages:</h4>
-          {newInterview.questionPackages.length > 0 ? (
-            <ul className="list-disc pl-5">
-              {newInterview.questionPackages.map((pkgId) => {
-                const pkg = questions.find((q) => q._id === pkgId);
-                return (
-                  <li key={pkgId} className="flex justify-between items-center">
-                    {pkg?.name}
-                    <button
-                      onClick={() => removeQuestionPackage(pkgId)}
-                      className="text-red-500 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p>No packages selected.</p>
-          )}
+          <div className="mb-6">
+            <h4 className="font-medium mb-2">Selected Packages:</h4>
+            {newInterview.questionPackages.length > 0 ? (
+              <ul className="space-y-2">
+                {newInterview.questionPackages.map((pkgId) => {
+                  const pkg = questions.find((q) => q._id === pkgId);
+                  return (
+                    <li key={pkgId} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                      {pkg?.name}
+                      <button
+                        onClick={() => removeQuestionPackage(pkgId)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No packages selected.</p>
+            )}
+          </div>
+
+          <div className="mb-6">
+            <label className="block font-medium mb-2">Expire Date</label>
+            <input
+              type="date"
+              value={newInterview.expireDate}
+              onChange={(e) =>
+                setNewInterview({
+                  ...newInterview,
+                  expireDate: e.target.value,
+                })
+              }
+              className="w-full border border-gray-300 rounded-lg p-2 sm:p-3"
+            />
+          </div>
         </div>
 
-        <input
-          type="date"
-          value={newInterview.expireDate}
-          onChange={(e) =>
-            setNewInterview({
-              ...newInterview,
-              expireDate: e.target.value,
-            })
-          }
-          className="border p-2 mb-4 w-full"
-        />
-
-        <div className="flex justify-between">
-          <button
-            onClick={handleCreateInterview}
-            className="bg-blue-500 text-white p-2 rounded w-2/5"
-          >
-            Add Interview
-          </button>
+        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 mt-auto pt-2 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="bg-gray-500 text-white p-2 rounded w-2/5"
+            className="px-4 sm:px-6 py-2 sm:py-3 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 w-full sm:w-auto"
           >
             Cancel
+          </button>
+          <button
+            onClick={handleCreateInterview}
+            disabled={!newInterview.title || newInterview.questionPackages.length === 0 || !newInterview.expireDate}
+            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg w-full sm:w-auto ${
+              !newInterview.title || newInterview.questionPackages.length === 0 || !newInterview.expireDate
+                ? 'bg-gray-300 cursor-not-allowed'
+                : 'bg-[#30847f] hover:bg-[#277571] text-white'
+            }`}
+          >
+            Add Interview
           </button>
         </div>
       </div>
