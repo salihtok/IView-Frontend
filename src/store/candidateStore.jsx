@@ -4,6 +4,9 @@ import axios from "axios";
 // API base URL
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Python API base URL
+const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;
+
 // Zustand store
 const useCandidateStore = create((set) => ({
   candidates: [],
@@ -125,7 +128,7 @@ const useCandidateStore = create((set) => ({
     console.log("Analyze Video Filepath:", filePath);
     set({ loading: true });
     try {
-      const response = await axios.post("http://localhost:5000/process_video", {
+      const response = await axios.post(`${PYTHON_API_URL}/process_video`, {
         video_id: filePath,
         candidate_id: candidateId,
       });
