@@ -22,7 +22,7 @@ const CandidateList = () => {
     error,
     deleteCandidate,
   } = useCandidateStore();
-  const { fetchVideoById, deleteVideo } = useVideoStore();
+  const { deleteVideo, fetchVideoById } = useVideoStore();
   const { interviewId } = useParams();
 
   const [videos, setVideos] = useState({});
@@ -30,55 +30,68 @@ const CandidateList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [videoError, setVideoError] = useState(null);
   const [showAnalysis, setShowAnalysis] = useState({});
+  const [analysisInProgress, setAnalysisInProgress] = useState({});
 
   useEffect(() => {
     fetchCandidatesForInterview(interviewId);
-  }, [interviewId, fetchCandidatesForInterview]);
+  }, [interviewId]);
 
   useEffect(() => {
-    const fetchVideosForCandidates = async () => {
-      const updatedVideos = await Promise.all(
-        candidates.map(async (candidate) => {
-          try {
-            const videoData = await fetchVideoById(candidate.videoUrl);
-            return { [candidate._id]: videoData?.url || null };
-          } catch (err) {
-            console.error("Failed to load video:", err);
-            return { [candidate._id]: null };
-          }
-        })
-      );
-      setVideos(Object.assign({}, ...updatedVideos));
-    };
+    const interval = setInterval((candidateId) => {
+      // Check for analysis completion
+      const candidate = candidates.find((cand) => cand._id === candidateId);
+      if (candidate?.result) {
+        clearInterval(interval); // Stop polling if results are ready
+        toast.success("Analysis complete");
+      }
+    }, 9000); // Poll every 9 seconds
 
-    if (candidates.length > 0) {
-      fetchVideosForCandidates();
+    return () => clearInterval(interval); // Clean up on component unmount
+  }, [candidates]);
+
+  const handleAnalyzeVideo = async (candidateId, videoUrl) => {
+    if (analysisInProgress[candidateId]) {
+      toast.info("Analysis already in progress.");
+      return;
     }
-  }, [candidates, fetchVideoById]);
 
-  const handleAnalyzeVideo = async (candidateId, filePath) => {
+    setAnalysisInProgress((prev) => ({ ...prev, [candidateId]: true }));
+
     try {
-      const response = await analyzeCandidateVideo(candidateId, filePath); // filepath'i ilet
+      const response = await analyzeCandidateVideo(candidateId, videoUrl);
       console.log("Analiz Sonuçları:", response.data);
+
+      toast.success("Analysis completed successfully!");
     } catch (error) {
       console.error("Analiz işlemi sırasında hata oluştu:", error);
+      toast.error("Analysis failed. Please try again.");
+    } finally {
+      setAnalysisInProgress((prev) => ({ ...prev, [candidateId]: false }));
     }
   };
+
 
   const handleDelete = async (candidateId, videoId) => {
     try {
       await deleteVideo(videoId);
       await deleteCandidate(candidateId);
+      setVideos((prevVideos) => {
+        const updatedVideos = { ...prevVideos };
+
+        delete updatedVideos[candidateId];
+
+        return updatedVideos;
+      });
       toast.success("Candidate deleted successfully!", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 2000,
         theme: "colored",
       });
     } catch (err) {
       console.error("Error during delete operation:", err);
       toast.error("Delete failed: Video not found or already deleted", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 2000,
         theme: "colored",
       });
     }
@@ -103,6 +116,17 @@ const CandidateList = () => {
     }
   };
 
+  const handleViewVideo = async (candidateId, videoKey) => {
+    try {
+      const signedUrl = await fetchVideoById(videoKey); // Signed URL al
+      setVideos((prev) => ({ ...prev, [candidateId]: signedUrl })); // Candidate ID ile eşleştir
+      setOpenModal(candidateId);
+      setVideoError(null);
+    } catch (error) {
+      setVideoError("Video yüklenemedi.");
+    }
+  };
+
   const filteredCandidates = candidates.filter((candidate) =>
     `${candidate.firstName} ${candidate.lastName}`
       .toLowerCase()
@@ -117,12 +141,14 @@ const CandidateList = () => {
       <div className="w-64 flex-shrink-0">
         <Sidebar />
       </div>
-      
+
       <div className="flex-1 overflow-hidden flex flex-col">
         <div className="p-6 flex-1 overflow-auto bg-gray-100">
           <div className="bg-[#F0FAF9] shadow-lg rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-black">Candidates for Interview</h2>
+              <h2 className="text-xl font-bold text-black">
+                Candidates for Interview
+              </h2>
               <div className="flex items-center gap-4">
                 <SearchBar
                   searchTerm={searchTerm}
@@ -132,7 +158,7 @@ const CandidateList = () => {
                 <LogoutButton />
               </div>
             </div>
-            
+
             {filteredCandidates.length === 0 ? (
               <div className="text-gray-600">
                 No candidates match your search.
@@ -140,10 +166,15 @@ const CandidateList = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {filteredCandidates.map((candidate) => (
-                  <div key={candidate._id} className="bg-white shadow-lg rounded-lg p-4 flex flex-col relative">
+                  <div
+                    key={candidate._id}
+                    className="bg-white shadow-lg rounded-lg p-4 flex flex-col relative"
+                  >
                     <div className="absolute top-2 right-2">
                       <DeleteButton
-                        onClick={() => handleDelete(candidate._id, candidate.videoUrl)}
+                        onClick={() =>
+                          handleDelete(candidate._id, candidate.videoUrl)
+                        }
                       />
                     </div>
                     <h3 className="text-lg md:text-xl font-semibold break-words">
@@ -151,37 +182,47 @@ const CandidateList = () => {
                     </h3>
                     <p className="break-words">{candidate.email}</p>
                     <p className="break-words">{candidate.phone}</p>
-                    
+
                     <button
-                      onClick={() => setShowAnalysis(prev => ({...prev, [candidate._id]: !prev[candidate._id]}))}
+                      onClick={() =>
+                        setShowAnalysis((prev) => ({
+                          ...prev,
+                          [candidate._id]: !prev[candidate._id],
+                        }))
+                      }
                       className="flex items-center gap-2 text-blue-500 hover:text-blue-700 mt-2 mb-1"
                     >
                       {showAnalysis[candidate._id] ? (
-                        <><FaEyeSlash className="w-4 h-4" /> Hide Analysis</>
+                        <>
+                          <FaEyeSlash className="w-4 h-4" /> Hide Analysis
+                        </>
                       ) : (
-                        <><FaEye className="w-4 h-4" /> Show Analysis</>
+                        <>
+                          <FaEye className="w-4 h-4" /> Show Analysis
+                        </>
                       )}
                     </button>
-                    
+
                     {showAnalysis[candidate._id] && (
                       <>
                         <p className="break-words">
-                          Transcription: {candidate.result?.transcription || "N/A"}
+                          Transcription:{" "}
+                          {candidate.result?.transcription || "N/A"}
                         </p>
                         <p className="break-words">
                           Face Analysis:{" "}
-                          {JSON.stringify(candidate.result?.face_analysis) || "N/A"}
+                          {JSON.stringify(candidate.result?.face_analysis) ||
+                            "N/A"}
                         </p>
                       </>
                     )}
                     <p>Status: {candidate.status}</p>
                     <div className="mt-4 flex gap-3">
-                      {videos[candidate._id] ? (
+                      {candidate.videoUrl ? (
                         <button
-                          onClick={() => {
-                            setOpenModal(candidate._id);
-                            setVideoError(null);
-                          }}
+                          onClick={() =>
+                            handleViewVideo(candidate._id, candidate.videoUrl)
+                          }
                           className="text-blue-500 hover:text-blue-700"
                         >
                           View Video
@@ -189,19 +230,21 @@ const CandidateList = () => {
                       ) : (
                         <p className="text-gray-500">Video bulunamadı</p>
                       )}
-                      
+
                       <button
-                        onClick={() => handleAnalyzeVideo(candidate._id, candidate.filePath)}
+                        onClick={() =>
+                          handleAnalyzeVideo(candidate._id, candidate.videoUrl)
+                        }
                         className="flex items-center gap-2 text-blue-500 hover:text-blue-700"
                       >
                         <FaChartBar className="w-4 h-4" />
                         Analyze
                       </button>
                     </div>
-                    {openModal === candidate._id && (
+                    {openModal === candidate._id && videos[candidate._id] && (
                       <VideoModal
                         candidate={candidate}
-                        videoUrl={videos[candidate._id]}
+                        videoUrl={videos[candidate._id]} // Signed URL'yi kullan
                         onClose={() => setOpenModal(null)}
                         onStatusChange={handleStatusChange}
                         onDelete={handleDelete}

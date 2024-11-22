@@ -123,15 +123,22 @@ const useCandidateStore = create((set) => ({
       });
     }
   },
-  analyzeCandidateVideo: async (candidateId, filePath) => {
-    console.log("Analyze Candidate ID:", candidateId);
-    console.log("Analyze Video Filepath:", filePath);
+  analyzeCandidateVideo: async (candidateId, videoKey) => {
+    console.log("Analize giden Video Key:", videoKey);
+    console.log("Analize giden Candidate ID:", candidateId);
     set({ loading: true });
     try {
+      // Backend'den Signed URL al
+      const signedUrl = await axios
+        .get(`${API_URL}/api/videos/${videoKey}`)
+        .then((res) => res.data.signedUrl);
+
+      // Python API'ye gönder
       const response = await axios.post(`${PYTHON_API_URL}/process_video`, {
-        video_id: filePath,
+        signed_url: signedUrl,
         candidate_id: candidateId,
       });
+
       console.log("Analiz Sonuçları:", response.data);
       set((state) => ({
         candidates: state.candidates.map((cand) =>

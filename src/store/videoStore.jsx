@@ -1,4 +1,3 @@
-// store/videoStore.js
 import { create } from "zustand";
 import axios from "axios";
 
@@ -22,16 +21,15 @@ const useVideoStore = create((set) => ({
   },
 
   // Belirli bir videoyu getir
-  fetchVideoById: async (id) => {
-    console.log("fetchVideoById:", id);
+  fetchVideoById: async (key) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get(`${API_URL}/api/videos/${id}`);
+      const response = await axios.get(`${API_URL}/api/videos/${key}`);
       set({ video: response.data, loading: false });
-      return response.data; // Veriyi geri döndürün
+      return response.data.signedUrl; // Signed URL döndür
     } catch (error) {
       set({ error: "Video bulunamadı.", loading: false });
-      throw error; // Hata durumunda işlemi atlatır
+      throw error;
     }
   },
 
@@ -39,20 +37,13 @@ const useVideoStore = create((set) => ({
   deleteVideo: async (id) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.delete(`${API_URL}/api/videos/${id}`);
-      if (response.status === 200) {
-        set((state) => ({
-          videos: state.videos.filter((video) => video._id !== id),
-          loading: false,
-        }));
-      }
+      await axios.delete(`${API_URL}/api/videos/${id}`);
+      set((state) => ({
+        videos: state.videos.filter((video) => video.key !== id),
+        loading: false,
+      }));
     } catch (error) {
-      if (error.response?.status === 404) {
-        set({ error: "Video veritabanında bulunamadı.", loading: false });
-      } else {
-        set({ error: "Video silinemedi.", loading: false });
-      }
-      throw error; // Rethrow error for further handling
+      set({ error: "Video silinemedi.", loading: false });
     }
   },
 }));
