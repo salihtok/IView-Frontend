@@ -1,5 +1,7 @@
 import React from "react";
 import { RadarChart, BarChart, PieChart } from "../Charts/charts";
+import Recommendations from "../Modal/Recommendations";
+import PDFExporter from "../Utilities/PDFExporter";
 
 const AnalysisModal = ({ candidate, onClose }) => {
   if (!candidate || !candidate.result) {
@@ -28,24 +30,37 @@ const AnalysisModal = ({ candidate, onClose }) => {
             <path d="M5.28 4.22a.75.75 0 0 0-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 1 0 1.06 1.06L8 9.06l2.72 2.72a.75.75 0 1 0 1.06-1.06L9.06 8l2.72-2.72a.75.75 0 0 0-1.06-1.06L8 6.94 5.28 4.22Z" />
           </svg>
         </button>
-        {/* Grafiklerin Grid Düzeni */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Radar Chart */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Radar Chart</h3>
+            <h3 className="text-lg font-bold">Radar Chart</h3>
+            <p className="text-gray-600 mb-2">
+              Teknik ve sosyal becerilerin bir aday için nasıl dengelendiğini
+              gösterir.
+            </p>
             <RadarChart data={result.analysis} />
           </div>
           {/* Bar Chart */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Bar Chart</h3>
+            <h3 className="text-lg font-bold">Bar Chart</h3>
+            <p className="text-gray-600 mb-2">
+              Her bir sorunun aday tarafından nasıl cevaplandığını ve benzerlik
+              skorlarını gösterir.
+            </p>
             <BarChart data={result.analysis?.question_similarity || []} />
           </div>
           {/* Pie Chart */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Pie Chart</h3>
+            <h3 className="text-lg font-bold">Pie Chart</h3>
+            <p className="text-gray-600 mb-2">
+              Duygu analiz sonuçlarına göre adayın duygu durum dağılımını temsil
+              eder.
+            </p>
             <PieChart data={result.emotion_analysis || {}} />
           </div>
         </div>
+        <Recommendations result={result} />
+        <PDFExporter candidate={candidate} />
       </div>
     </div>
   );

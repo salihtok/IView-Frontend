@@ -11,7 +11,7 @@ import Sidebar from "../components/Bar/sidebar";
 import DeleteButton from "../components/Buttons/DeleteButton";
 import LogoutButton from "../components/Buttons/LogoutButton";
 
-import VideoModal from "../components/Popup/VideoModal";
+import VideoModal from "../components/Modal/VideoModal";
 import AnalysisModal from "../components/Modal/analysisModal";
 
 import useCandidateStore from "../store/candidateStore";

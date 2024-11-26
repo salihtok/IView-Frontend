@@ -15,9 +15,13 @@ const RequirementsPopup = ({ interviewId, onClose, onUpdate }) => {
     const loadRequirements = async () => {
       setLoading(true);
       try {
-        await fetchInterviewById(interviewId);
         if (interview?.requirements) {
           setRequirements(interview.requirements);
+        } else {
+          await fetchInterviewById(interviewId);
+          if (interview?.requirements) {
+            setRequirements(interview.requirements);
+          }
         }
       } catch (err) {
         toast.error("Failed to load requirements.");
@@ -26,7 +30,7 @@ const RequirementsPopup = ({ interviewId, onClose, onUpdate }) => {
       }
     };
     loadRequirements();
-  }, [fetchInterviewById, interviewId, interview]);
+  }, [interviewId, interview?.requirements, fetchInterviewById]);
 
   const handleChange = (field, value, category = null) => {
     setRequirements((prev) => {
