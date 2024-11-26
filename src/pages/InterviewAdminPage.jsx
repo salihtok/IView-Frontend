@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
-import useInterviewStore from "../store/interviewStore";
-import Sidebar from "../components/Bar/sidebar";
-import InterviewPopup from "../components/Popup/interviewPopup";
-import EditInterviewPopup from "../components/Popup/editInterview";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate } from "react-router-dom";
+
+import useInterviewStore from "../store/interviewStore";
+
 import SearchBar from "../components/Bar/SearchBar";
+import Sidebar from "../components/Bar/sidebar";
+
+import InterviewPopup from "../components/Popup/interviewPopup";
+import EditInterviewPopup from "../components/Popup/editInterview";
+import RequirementsPopup from "../components/Popup/RequirementsPopup";
+
 import AddButton from "../components/Buttons/AddButton";
 import EditButton from "../components/Buttons/EditButton";
 import DeleteButton from "../components/Buttons/DeleteButton";
@@ -19,6 +24,7 @@ export const InterviewList = () => {
     fetchInterviews,
     deleteInterview,
     publishInterview,
+    updateInterview,
     loading,
     error,
   } = useInterviewStore();
@@ -28,6 +34,8 @@ export const InterviewList = () => {
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [selectedInterviewId, setSelectedInterviewId] = useState(null);
   const [showEditPopup, setShowEditPopup] = useState(false);
+  const [showRequirementsPopup, setShowRequirementsPopup] = useState(false);
+  const [currentInterviewId, setCurrentInterviewId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -50,6 +58,11 @@ export const InterviewList = () => {
   const handleEditInterview = (interview) => {
     setSelectedInterviewId(interview._id);
     setShowEditPopup(true);
+  };
+
+  const handleSetRequirements = (interviewId) => {
+    setCurrentInterviewId(interviewId);
+    setShowRequirementsPopup(true);
   };
 
   // Yayın durumunu değiştirme fonksiyonu
@@ -166,6 +179,12 @@ export const InterviewList = () => {
                           <path d="M8.5 4.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10.9 12.006c.11.542-.348.994-.9.994H2c-.553 0-1.01-.452-.902-.994a5.002 5.002 0 0 1 9.803 0ZM14.002 12h-1.59a2.556 2.556 0 0 0-.04-.29 6.476 6.476 0 0 0-1.167-2.603 3.002 3.002 0 0 1 3.633 1.911c.18.522-.283.982-.836.982ZM12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
                         </svg>
                       </button>
+                      <button
+                        onClick={() => handleSetRequirements(interview._id)}
+                        className="text-blue-600 hover:text-blue-700 mr-2 transition-colors duration-200"
+                      >
+                        Set Requirements
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -183,6 +202,13 @@ export const InterviewList = () => {
                 setShowEditPopup(false);
                 setSelectedInterviewId(null);
               }}
+            />
+          )}
+          {showRequirementsPopup && (
+            <RequirementsPopup
+              interviewId={currentInterviewId}
+              onClose={() => setShowRequirementsPopup(false)}
+              onUpdate={updateInterview}
             />
           )}
 

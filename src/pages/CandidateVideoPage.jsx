@@ -1,16 +1,22 @@
 // CandidateList.js
 import React, { useEffect, useState } from "react";
-import useCandidateStore from "../store/candidateStore";
-import useVideoStore from "../store/videoStore";
 import { useParams } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import { FaEye, FaEyeSlash, FaChartBar } from "react-icons/fa";
+import "react-toastify/dist/ReactToastify.css";
+
+import SearchBar from "../components/Bar/SearchBar";
 import Sidebar from "../components/Bar/sidebar";
+
 import DeleteButton from "../components/Buttons/DeleteButton";
 import LogoutButton from "../components/Buttons/LogoutButton";
-import SearchBar from "../components/Bar/SearchBar";
+
 import VideoModal from "../components/Popup/VideoModal";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { FaEye, FaEyeSlash, FaChartBar } from "react-icons/fa";
+import AnalysisModal from "../components/Modal/analysisModal";
+
+import useCandidateStore from "../store/candidateStore";
+import useVideoStore from "../store/videoStore";
+import useInterviewStore from "../store/interviewStore";
 
 const CandidateList = () => {
   const {
@@ -23,6 +29,8 @@ const CandidateList = () => {
     deleteCandidate,
   } = useCandidateStore();
   const { deleteVideo, fetchVideoById } = useVideoStore();
+  const { interview, fetchInterviewById } = useInterviewStore();
+
   const { interviewId } = useParams();
 
   const [videos, setVideos] = useState({});
@@ -30,10 +38,16 @@ const CandidateList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [videoError, setVideoError] = useState(null);
   const [showAnalysis, setShowAnalysis] = useState({});
-  const [analysisInProgress, setAnalysisInProgress] = useState({});
+  const [activeCandidate, setActiveCandidate] = useState(null);
 
   useEffect(() => {
     fetchCandidatesForInterview(interviewId);
+  }, [interviewId]);
+
+  useEffect(() => {
+    if (interviewId) {
+      fetchInterviewById(interviewId);
+    }
   }, [interviewId]);
 
   useEffect(() => {
@@ -50,26 +64,42 @@ const CandidateList = () => {
   }, [candidates]);
 
   const handleAnalyzeVideo = async (candidateId, videoUrl) => {
-    if (analysisInProgress[candidateId]) {
-      toast.info("Analysis already in progress.");
+    console.log("Interview:", interview);
+    console.log("Interview Requirements:", interview.requirements);
+
+    // Tüm `questionPackage` dizisindeki soruları filtreleyerek topla
+    const allQuestions =
+      interview.questionPackage?.flatMap((pkg) => pkg.questions) || [];
+    console.log("All Questions:", allQuestions);
+
+    if (!interview || !interview.requirements || allQuestions.length === 0) {
+      toast.error("Analysis requirements or questions are missing.");
       return;
     }
 
-    setAnalysisInProgress((prev) => ({ ...prev, [candidateId]: true }));
+    // Sadece `text` ve `questionTime` alanlarını içeren bir liste oluştur
+    const filteredQuestions = allQuestions.map(({ text, questionTime }) => ({
+      text,
+      questionTime,
+    }));
+
+    console.log("Filtered Questions:", filteredQuestions);
+
+    const payload = {
+      candidateID: candidateId,
+      videoUrl: videoUrl,
+      requirements: interview.requirements,
+      questions: filteredQuestions, // Filtrelenmiş soruları gönder
+    };
 
     try {
-      const response = await analyzeCandidateVideo(candidateId, videoUrl);
-      console.log("Analiz Sonuçları:", response.data);
-
+      await analyzeCandidateVideo(candidateId, videoUrl, payload);
       toast.success("Analysis completed successfully!");
     } catch (error) {
-      console.error("Analiz işlemi sırasında hata oluştu:", error);
+      console.error("Error during analysis:", error);
       toast.error("Analysis failed. Please try again.");
-    } finally {
-      setAnalysisInProgress((prev) => ({ ...prev, [candidateId]: false }));
     }
   };
-
 
   const handleDelete = async (candidateId, videoId) => {
     try {
@@ -123,8 +153,14 @@ const CandidateList = () => {
       setOpenModal(candidateId);
       setVideoError(null);
     } catch (error) {
+      console.error("Error fetching video:", error);
       setVideoError("Video yüklenemedi.");
+      toast.error("Failed to load video. Please try again.");
     }
+  };
+
+  const handleShowAnalysis = (candidate) => {
+    setActiveCandidate(candidate);
   };
 
   const filteredCandidates = candidates.filter((candidate) =>
@@ -184,12 +220,7 @@ const CandidateList = () => {
                     <p className="break-words">{candidate.phone}</p>
 
                     <button
-                      onClick={() =>
-                        setShowAnalysis((prev) => ({
-                          ...prev,
-                          [candidate._id]: !prev[candidate._id],
-                        }))
-                      }
+                      onClick={() => handleShowAnalysis(candidate)}
                       className="flex items-center gap-2 text-blue-500 hover:text-blue-700 mt-2 mb-1"
                     >
                       {showAnalysis[candidate._id] ? (
@@ -210,14 +241,13 @@ const CandidateList = () => {
                           {candidate.result?.transcription || "N/A"}
                         </p>
                         <p className="break-words">
-                          Face Analysis:{" "}
-                          {JSON.stringify(candidate.result?.face_analysis) ||
-                            "N/A"}
+                          Analysis:{" "}
+                          {JSON.stringify(candidate.result?.analysis) || "N/A"}
                         </p>
                       </>
                     )}
                     <p>Status: {candidate.status}</p>
-                    <div className="mt-4 flex gap-3">
+                    <div className="mt-4 flex gap-3 justify-between">
                       {candidate.videoUrl ? (
                         <button
                           onClick={() =>
@@ -249,6 +279,12 @@ const CandidateList = () => {
                         onStatusChange={handleStatusChange}
                         onDelete={handleDelete}
                         error={!videos[candidate._id] || videoError}
+                      />
+                    )}
+                    {activeCandidate && (
+                      <AnalysisModal
+                        candidate={activeCandidate}
+                        onClose={() => setActiveCandidate(null)}
                       />
                     )}
                   </div>

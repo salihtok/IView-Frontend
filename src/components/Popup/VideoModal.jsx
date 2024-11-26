@@ -11,7 +11,7 @@ const VideoModal = ({
   console.log("VideoModal videoUrl:", videoUrl);
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg max-w-md w-full relative">
+      <div className="bg-white p-7 rounded-lg max-w-md w-full relative shadow-lg">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -28,21 +28,21 @@ const VideoModal = ({
         {error ? (
           <div className="text-red-500">Video bulunamadı.</div>
         ) : (
-          <video width="100%" controls>
+          <video width="100%" controls className="rounded-lg">
             <source src={videoUrl} type="video/mp4" />
             Your browser does not support the video tag.
           </video>
         )}
-        <div className="mt-4 flex justify-between">
+        <div className="mt-4 flex justify-between space-x-4">
           <button
             onClick={() => onStatusChange(candidate._id, "passed")}
-            className="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded"
+            className="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded shadow-lg"
           >
             Accept
           </button>
           <button
             onClick={() => onStatusChange(candidate._id, "failed")}
-            className="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded"
+            className="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded shadow-lg"
           >
             Reject
           </button>

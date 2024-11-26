@@ -21,10 +21,10 @@ const useInterviewStore = create((set) => ({
   },
 
   // Tek bir mülakatı ID ile getirme
-  fetchInterviewById: async (link) => {
+  fetchInterviewById: async (id) => {
     set({ loading: true, error: null });
     try {
-      const response = await axios.get(`${API_URL}/api/interviews/${link}`);
+      const response = await axios.get(`${API_URL}/api/interviews/${id}`);
       set({ interview: response.data, loading: false });
     } catch (error) {
       set({ error: "Mülakat alınamadı", loading: false });

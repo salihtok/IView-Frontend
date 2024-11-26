@@ -22,12 +22,10 @@ const EditInterviewPopup = ({ interviewId, onClose }) => {
           fetchInterviewById(interviewId),
           fetchQuestions()
         ]);
-        toast.dismiss(toastId);
         toast.success("Data loaded", {
           toastId: 'data-loaded'  // Unique ID for success toast
         });
       } catch (err) {
-        toast.dismiss(toastId);
         toast.error("Failed to load data", {
           toastId: 'data-error'   // Unique ID for error toast
         });

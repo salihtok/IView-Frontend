@@ -123,9 +123,11 @@ const useCandidateStore = create((set) => ({
       });
     }
   },
-  analyzeCandidateVideo: async (candidateId, videoKey) => {
+  analyzeCandidateVideo: async (candidateId, videoKey, payload) => {
     console.log("Analize giden Video Key:", videoKey);
     console.log("Analize giden Candidate ID:", candidateId);
+    console.log("Analize giden Payload:", payload);
+
     set({ loading: true });
     try {
       // Backend'den Signed URL al
@@ -137,6 +139,7 @@ const useCandidateStore = create((set) => ({
       const response = await axios.post(`${PYTHON_API_URL}/process_video`, {
         signed_url: signedUrl,
         candidate_id: candidateId,
+        ...payload, // Requirements ve Questions burada gönderiliyor
       });
 
       console.log("Analiz Sonuçları:", response.data);
