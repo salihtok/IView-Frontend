@@ -1,43 +1,44 @@
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const PDFExporter = ({ candidate }) => {
-  const downloadPDF = () => {
-    const doc = new jsPDF();
-    const { firstName, lastName, result } = candidate;
+  const downloadPDF = async () => {
+    const modalElement = document.querySelector(".modal-content"); // Modal içeriğini seçin
 
-    doc.text("Candidate Analysis Report", 10, 10);
-    doc.text(`Name: ${firstName} ${lastName}`, 10, 20);
-    doc.text(
-      `Technical Skills: ${
-        result?.analysis?.keyword_hits?.technical?.length || 0
-      }`,
-      10,
-      30
-    );
-    doc.text(
-      `Soft Skills: ${
-        result?.analysis?.keyword_hits?.soft_skills?.length || 0
-      }`,
-      10,
-      40
-    );
-    doc.text(
-      `Positive Emotion: ${result?.emotion_analysis?.positive || 0}`,
-      10,
-      50
-    );
-    doc.text(
-      `Neutral Emotion: ${result?.emotion_analysis?.neutral || 0}`,
-      10,
-      60
-    );
-    doc.text(
-      `Negative Emotion: ${result?.emotion_analysis?.negative || 0}`,
-      10,
-      70
-    );
+    if (!modalElement) {
+      console.error("Modal content not found.");
+      return;
+    }
 
-    doc.save(`${firstName}_Analysis_Report.pdf`);
+    try {
+      // Modal içeriğini canvas olarak yakala
+      const canvas = await html2canvas(modalElement, {
+        scale: 2, // Yüksek çözünürlük için ölçek
+      });
+
+      // Canvas'ı görüntü olarak al
+      const imgData = canvas.toDataURL("image/png");
+
+      // PDF'yi yatay (landscape) modunda oluştur
+      const pdf = new jsPDF("l", "mm", "a4"); // 'l' landscape, 'mm' milimetre, 'a4' sayfa boyutu
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Görüntüyü PDF'ye boyutlandırarak ekle
+      pdf.addImage(
+        imgData,
+        "PNG",
+        0,
+        0,
+        pageWidth,
+        (canvas.height * pageWidth) / canvas.width
+      );
+
+      // PDF'yi indir
+      pdf.save(`${candidate.firstName}_Analysis_Report.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+    }
   };
 
   return (
